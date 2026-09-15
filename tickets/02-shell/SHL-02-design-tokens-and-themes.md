@@ -2,7 +2,7 @@
 id: SHL-02
 title: Design tokens and themes
 epic: shell
-status: todo
+status: done
 size: M
 depends_on: [FND-01]
 spec: []
@@ -14,11 +14,12 @@ As a **household member**, I want **a light and a dark theme** so that **the app
 
 ## Acceptance criteria
 
-- [ ] Palette defined once as CSS custom properties, never as literals in components
-- [ ] Dark is a designed palette, not an inversion
-- [ ] Follows the system setting by default, with an explicit override in Settings
-- [ ] Figures use tabular numerals everywhere by default
-- [ ] Contrast meets WCAG AA in both themes
+- [x] Palette defined once as CSS custom properties, never as literals in components
+- [x] Dark is a designed palette, not an inversion
+- [x] Follows the system setting by default, with an explicit override in Settings
+      *(the control is in the shell sidebar until SHL-07 builds the screen)*
+- [x] Figures use tabular numerals everywhere by default
+- [x] Contrast meets WCAG AA in both themes
 
 ## Notes
 

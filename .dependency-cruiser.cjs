@@ -40,7 +40,8 @@
  *   secondary-only-secondary-ports   secondary_adapters/ ──✗──►  core/, bar the ports
  *   shared-domain-is-a-leaf          shared/domain/      ──✗──►  anything of ours but itself
  *   domain-no-sql                    anywhere else       ──✗──►  @effect/sql-* · wa-sqlite
- *   no-circular                      anything            ──✗──►  itself, transitively
+ *   shell-only-primary-adapters     src/shell/          ──✗──►  a module's core or adapters
+ *   no-circular                     anything            ──✗──►  itself, transitively
  *
  *   The first three also cover shared/domain/.
  *
@@ -102,6 +103,16 @@ module.exports = {
         path: "^src/modules/[^/]+/core/",
         pathNot: "^src/modules/[^/]+/core/ports/secondary/"
       }
+    },
+    {
+      name: "shell-only-primary-adapters",
+      comment:
+        "src/shell/** is the frame around the screens. It may mount a module's primary " +
+        "adapters and speak shared/domain, but must not reach into a module's core or its " +
+        "driven adapters — a shell that knows a use case is a shell that cannot be reused.",
+      severity: "error",
+      from: { path: "^src/shell/" },
+      to: { path: "^src/modules/[^/]+/(core|secondary_adapters)/" }
     },
     {
       name: "shared-domain-is-a-leaf",

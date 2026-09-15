@@ -4,7 +4,22 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
+    <link rel="icon" type="image/png" href="/imgs/favicon-32.png" />
     <title>Delta</title>
+    <script>
+      // Before first paint, so the app never flashes the wrong theme. Mirrors
+      // resolve() in src/shell/theme/Theme.ts; the two must agree.
+      try {
+        var stored = localStorage.getItem("delta.theme")
+        var preference = stored === "light" || stored === "dark" ? stored : "system"
+        var dark =
+          preference === "dark" ||
+          (preference === "system" && matchMedia("(prefers-color-scheme: dark)").matches)
+        document.documentElement.dataset.theme = dark ? "dark" : "light"
+      } catch (_) {
+        document.documentElement.dataset.theme = "light"
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

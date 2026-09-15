@@ -2,7 +2,7 @@
 id: SHL-01
 title: App layout and navigation
 epic: shell
-status: todo
+status: done
 size: M
 depends_on: [FND-01]
 spec: ["§59", "§76"]
@@ -14,8 +14,8 @@ As a **household member**, I want **to move between the app's sections** so that
 
 ## Acceptance criteria
 
-- [ ] Six sections: Dashboard, Projection, Capital, Commitments, Scenarios, Settings
-- [ ] The current section is visually and programmatically marked
-- [ ] Client-side routing; a reload returns to the same section
-- [ ] Keyboard navigable with a visible focus state
-- [ ] No nav entries for transactions, accounts, taxes, debt or budgets
+- [x] Six sections: Dashboard, Projection, Capital, Commitments, Scenarios, Settings
+- [x] The current section is visually and programmatically marked
+- [x] Client-side routing; a reload returns to the same section
+- [x] Keyboard navigable with a visible focus state
+- [x] No nav entries for transactions, accounts, taxes, debt or budgets

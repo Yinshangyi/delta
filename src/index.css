@@ -6,26 +6,74 @@
 @import "@fontsource/ibm-plex-mono/500.css";
 
 /*
- * Design tokens. Tailwind 4 emits every @theme entry as a CSS custom property on
- * :root, so `var(--color-accent)` and `bg-accent` name the same value.
- * Direction: design-brief.md — a pro finance app, not a monochrome system look.
+ * `dark:` follows the resolved theme, never the media query directly — the
+ * pre-paint script in index.html writes `data-theme` from the stored preference
+ * or the system setting, so one attribute decides everything.
  */
-@theme {
-  --color-ink: #0e1116;
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * Tailwind 4 emits every @theme entry as a custom property on :root, so
+ * `var(--color-accent)` and `bg-accent` name the same value. Components use the
+ * names below and never a literal — which is what lets the palette below it be
+ * replaced wholesale.
+ *
+ * Semantic colour (positive, negative, estimated) touches figures only. Never a
+ * button, never a card background: principle 5 of design-brief.md is that a
+ * distinction must survive colour-blindness, so hue is always paired with a
+ * label, a weight or a line style.
+ */
+/*
+ * `static` because Tailwind drops theme variables nothing references, and the
+ * palette is a contract rather than a byproduct of what happens to be used
+ * today. Without it, --color-positive disappears until the first component
+ * renders a positive figure.
+ */
+@theme static {
   --color-ground: #f4f6f8;
   --color-surface: #ffffff;
-  --color-panel: #151a21;
+  --color-raised: #eef1f5;
   --color-line: #dfe4ea;
 
+  --color-ink: #0e1116;
   --color-muted: #5b6672;
+
   --color-accent: #2a5bd7;
+  --color-accent-ink: #ffffff;
   --color-accent-soft: #e8eefc;
+
   --color-positive: #0e7c5a;
   --color-negative: #b4413c;
-  --color-estimated: #8a6d1f;
+  --color-estimated: #806418;
 
   --font-sans: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+/*
+ * Dark is designed, not inverted. The ground takes the light theme's ink, the
+ * text is a cool off-white rather than pure white, and every accent is lifted
+ * until it carries on a dark ground — #2a5bd7 is unreadable there, so the
+ * accent is a different blue rather than the same one dimmed.
+ *
+ * Every pair below is at least 4.5:1 against both ground and surface.
+ */
+[data-theme="dark"] {
+  --color-ground: #0e1116;
+  --color-surface: #161c24;
+  --color-raised: #1e252f;
+  --color-line: #252d38;
+
+  --color-ink: #e9edf2;
+  --color-muted: #9aa6b2;
+
+  --color-accent: #6f9bff;
+  --color-accent-ink: #0e1116;
+  --color-accent-soft: #1b2740;
+
+  --color-positive: #46c08d;
+  --color-negative: #ef7f76;
+  --color-estimated: #d7ab54;
 }
 
 @layer base {
@@ -34,11 +82,18 @@
     color: var(--color-ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+
+    /* Every figure in Delta sits in a column that has to line up. */
+    font-variant-numeric: tabular-nums;
   }
 
-  /* Every figure in Delta sits in a column that has to line up. */
-  table,
-  [data-numeric] {
-    font-variant-numeric: tabular-nums;
+  /* Prose is the exception: proportional digits read better inside a sentence. */
+  p {
+    font-variant-numeric: normal;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
   }
 }

@@ -4,8 +4,9 @@ import { describe, expect, it } from "vitest"
 import { App } from "@/App"
 
 describe("App", () => {
-  it("names the question the product exists to answer", () => {
+  it("mounts the shell, so every section is one click away", () => {
     render(<App />)
-    expect(screen.getByRole("heading", { name: /when do we reach the goal/i })).toBeInTheDocument()
+    expect(screen.getByRole("navigation", { name: /sections/i })).toBeInTheDocument()
+    expect(screen.getByRole("link", { name: "Dashboard" })).toBeInTheDocument()
   })
 })

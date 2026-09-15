@@ -95,6 +95,15 @@ describe("the hexagon is enforced, not merely documented", () => {
     expect(output).toContain("no-circular")
   })
 
+  it("rejects the shell reaching into a module's core", async () => {
+    const { code, output } = await cruise({
+      "src/shell/Bad.ts": `import { run } from "@/modules/demo/core/use_cases/Run"\nexport const bad = run\n`,
+      "src/modules/demo/core/use_cases/Run.ts": `export const run = 1\n`
+    })
+    expect(code).not.toBe(0)
+    expect(output).toContain("shell-only-primary-adapters")
+  })
+
   it("accepts a use case importing its own secondary port", async () => {
     const { code } = await cruise({
       "src/modules/demo/core/use_cases/Good.ts": `import { Port } from "@/modules/demo/core/ports/secondary/Port"\nexport const good = Port\n`,
