@@ -2,7 +2,7 @@
 id: SHL-03
 title: Presentation vocabulary
 epic: shell
-status: todo
+status: done
 size: M
 depends_on: [FND-02, FND-03]
 spec: []
@@ -14,8 +14,8 @@ As a **developer**, I want **formatting as pure functions outside components** s
 
 ## Acceptance criteria
 
-- [ ] Money, month, exact date and signed delta formatters, all pure
-- [ ] Estimates render with a `~` prefix and carry a label — the tilde alone is never the only signal
-- [ ] Deltas are always signed and directional: `3 months sooner`, `€1,500 behind plan`
-- [ ] No formatting logic inside JSX
-- [ ] Locale is a single decision made in one place
+- [x] Money, month, exact date and signed delta formatters, all pure
+- [x] Estimates render with a `~` prefix and carry a label — the tilde alone is never the only signal
+- [x] Deltas are always signed and directional: `3 months sooner`, `€1,500 behind plan`
+- [x] No formatting logic inside JSX
+- [x] Locale is a single decision made in one place

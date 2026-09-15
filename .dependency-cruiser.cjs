@@ -126,6 +126,17 @@ module.exports = {
       to: { path: "^src/modules/[^/]+/(core|secondary_adapters)/" }
     },
     {
+      name: "dsl-is-a-leaf",
+      comment:
+        "src/dsl/** is the design system: buttons, dialogs, tables. It knows nothing of " +
+        "Delta's domain, its modules or its shell, and takes strings and ReactNode rather " +
+        "than Money or Holdings. A primitive that imports a domain type has stopped being " +
+        "a primitive.",
+      severity: "error",
+      from: { path: "^src/dsl/" },
+      to: { path: "^src/", pathNot: "^src/dsl/" }
+    },
+    {
       name: "shared-domain-is-a-leaf",
       comment:
         "shared/domain/** is the vocabulary every module speaks. It must depend on " +

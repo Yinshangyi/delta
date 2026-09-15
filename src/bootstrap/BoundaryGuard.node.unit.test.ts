@@ -113,6 +113,15 @@ describe("the hexagon is enforced, not merely documented", () => {
     expect(output).toContain("shell-only-primary-adapters")
   })
 
+  it("rejects a design-system primitive importing a domain type", async () => {
+    const { code, output } = await cruise({
+      "src/dsl/Bad.ts": `import { zero } from "@/shared/domain/Money"\nexport const bad = zero\n`,
+      "src/shared/domain/Money.ts": `export const zero = 0\n`
+    })
+    expect(code).not.toBe(0)
+    expect(output).toContain("dsl-is-a-leaf")
+  })
+
   it("accepts a use case importing its own secondary port", async () => {
     const { code } = await cruise({
       "src/modules/demo/core/use_cases/Good.ts": `import { Port } from "@/modules/demo/core/ports/secondary/Port"\nexport const good = Port\n`,
