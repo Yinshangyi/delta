@@ -42,6 +42,10 @@ const of = (yearMonth: YearMonth): Temporal.PlainYearMonth =>
 
 export const toIso = (yearMonth: YearMonth): string => yearMonth
 
+export const year = (yearMonth: YearMonth): number => Number(yearMonth.slice(0, 4))
+
+export const month = (yearMonth: YearMonth): number => Number(yearMonth.slice(5, 7))
+
 export const addMonths = (yearMonth: YearMonth, months: number): YearMonth =>
   of(yearMonth)
     .add({ months: Math.trunc(months) })

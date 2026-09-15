@@ -46,6 +46,12 @@ const of = (date: LocalDate): Temporal.PlainDate => Temporal.PlainDate.from(date
 
 export const toIso = (date: LocalDate): string => date
 
+export const year = (date: LocalDate): number => Number(date.slice(0, 4))
+
+export const month = (date: LocalDate): number => Number(date.slice(5, 7))
+
+export const day = (date: LocalDate): number => Number(date.slice(8, 10))
+
 /** Clamps to the last day of the target month, as a calendar does. */
 export const addMonths = (date: LocalDate, months: number): LocalDate =>
   of(date)
