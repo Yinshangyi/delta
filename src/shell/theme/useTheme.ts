@@ -1,13 +1,6 @@
 import { useSyncExternalStore } from "react"
 
-import {
-  readPreference,
-  resolve,
-  subscribe,
-  type Theme,
-  type ThemePreference,
-  writePreference
-} from "@/shell/theme/Theme"
+import { type Theme, type ThemePreference, themeStore } from "@/shell/theme/Theme"
 
 export interface ThemeControl {
   readonly preference: ThemePreference
@@ -16,6 +9,10 @@ export interface ThemeControl {
 }
 
 export const useTheme = (): ThemeControl => {
-  const preference = useSyncExternalStore(subscribe, readPreference, () => "system" as const)
-  return { preference, theme: resolve(preference), setPreference: writePreference }
+  const preference = useSyncExternalStore(
+    themeStore.subscribe,
+    themeStore.preference,
+    () => "system" as const
+  )
+  return { preference, theme: themeStore.theme(), setPreference: themeStore.set }
 }

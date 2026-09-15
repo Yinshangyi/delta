@@ -2,9 +2,16 @@
  * Theme preference, held outside React so the pre-paint script in index.html
  * and the app agree on one source of truth.
  *
- * The preference is per-device, not per-household, so it lives in
- * localStorage rather than the database — and reading it must not wait on a
- * worker, or the first paint is the wrong colour.
+ * The preference is per-device, not per-household, so it lives in localStorage
+ * rather than the database — and reading it must not wait on a worker, or the
+ * first paint is the wrong colour.
+ *
+ * The three browser capabilities it needs arrive as a `ThemeEnvironment` rather
+ * than being reached for. That is dependency inversion without Effect: the
+ * calling convention here is React's `useSyncExternalStore`, which demands a
+ * synchronous read, so there is nowhere for an `Effect` description to travel
+ * to. What it buys is the same thing a Layer would — a test substitutes a whole
+ * environment instead of monkey-patching globals.
  */
 export type ThemePreference = "system" | "light" | "dark"
 
@@ -12,62 +19,108 @@ export type Theme = "light" | "dark"
 
 export const STORAGE_KEY = "delta.theme"
 
+/** Only what the store actually uses, so a test fake needs no cast. */
+export interface DarkMediaQuery {
+  readonly matches: boolean
+  readonly addEventListener: (type: "change", listener: () => void) => void
+  readonly removeEventListener: (type: "change", listener: () => void) => void
+}
+
+export interface ThemeEnvironment {
+  /** Absent in a browser with no storage at all, as opposed to one that refuses. */
+  readonly storage: Pick<Storage, "getItem" | "setItem"> | undefined
+  readonly darkMedia: DarkMediaQuery | undefined
+  readonly writeTheme: (theme: Theme) => void
+}
+
+export interface ThemeStore {
+  readonly preference: () => ThemePreference
+  readonly theme: () => Theme
+  readonly set: (preference: ThemePreference) => void
+  readonly subscribe: (listener: () => void) => () => void
+}
+
 const isPreference = (value: unknown): value is ThemePreference =>
   value === "system" || value === "light" || value === "dark"
 
-/** Private browsing and blocked site data both make this throw rather than return null. */
-export const readPreference = (): ThemePreference => {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return isPreference(stored) ? stored : "system"
-    // There is one sane answer to any storage failure, and it is "follow the
-    // system" — the cause adds nothing the caller could act on.
-    // ast-grep-ignore: no-unbound-catch
-  } catch {
-    return "system"
+export const browserEnvironment: ThemeEnvironment = {
+  storage: globalThis.localStorage as Storage | undefined,
+  darkMedia: globalThis.matchMedia?.("(prefers-color-scheme: dark)"),
+  writeTheme: (theme) => {
+    document.documentElement.dataset["theme"] = theme
   }
 }
 
-export const systemTheme = (): Theme =>
-  globalThis.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+export const makeThemeStore = (environment: ThemeEnvironment = browserEnvironment): ThemeStore => {
+  const listeners = new Set<() => void>()
 
-export const resolve = (preference: ThemePreference): Theme =>
-  preference === "system" ? systemTheme() : preference
-
-export const apply = (theme: Theme): void => {
-  document.documentElement.dataset["theme"] = theme
-}
-
-const listeners = new Set<() => void>()
-
-const announce = (): void => {
-  for (const listener of listeners) listener()
-}
-
-export const writePreference = (preference: ThemePreference): void => {
-  try {
-    localStorage.setItem(STORAGE_KEY, preference)
-    // A refused write costs the choice on the next reload, nothing more.
-    // ast-grep-ignore: no-unbound-catch
-  } catch {
-    // A refused write is not worth failing over; the choice lasts this session.
+  const stored = (): ThemePreference => {
+    try {
+      const value = environment.storage?.getItem(STORAGE_KEY)
+      return isPreference(value) ? value : "system"
+      // Private browsing and blocked site data throw rather than return null,
+      // and there is one sane answer either way: follow the system.
+      // ast-grep-ignore: no-unbound-catch
+    } catch {
+      return "system"
+    }
   }
-  apply(resolve(preference))
-  announce()
+
+  /**
+   * Read once, then held in memory. Storage is where the choice persists, not
+   * where it lives: a refused write must still hold for this session, and
+   * `useSyncExternalStore` calls the snapshot on every render, which is no
+   * place for a storage hit.
+   */
+  let current: ThemePreference = stored()
+
+  const preference = (): ThemePreference => current
+
+  const theme = (): Theme => {
+    const chosen = preference()
+    if (chosen !== "system") return chosen
+    return environment.darkMedia?.matches === true ? "dark" : "light"
+  }
+
+  /** The only place the resolved theme reaches the outside world. */
+  const paint = (): void => {
+    environment.writeTheme(theme())
+  }
+
+  const announce = (): void => {
+    for (const listener of listeners) listener()
+  }
+
+  const set = (next: ThemePreference): void => {
+    current = next
+    try {
+      environment.storage?.setItem(STORAGE_KEY, next)
+      // A refused write costs the choice on the next reload, nothing more.
+      // ast-grep-ignore: no-unbound-catch
+    } catch {
+      // Deliberately empty: the choice still holds for this session.
+    }
+    paint()
+    announce()
+  }
+
+  /** Notifies on an explicit change, and on the system flipping under "system". */
+  const subscribe = (listener: () => void): (() => void) => {
+    listeners.add(listener)
+    const onSystemChange = () => {
+      paint()
+      listener()
+    }
+    environment.darkMedia?.addEventListener("change", onSystemChange)
+
+    return () => {
+      listeners.delete(listener)
+      environment.darkMedia?.removeEventListener("change", onSystemChange)
+    }
+  }
+
+  return { preference, theme, set, subscribe }
 }
 
-/** Notifies on an explicit change and on the system flipping under "system". */
-export const subscribe = (listener: () => void): (() => void) => {
-  listeners.add(listener)
-  const media = globalThis.matchMedia?.("(prefers-color-scheme: dark)")
-  const onSystemChange = () => {
-    if (readPreference() === "system") apply(systemTheme())
-    listener()
-  }
-  media?.addEventListener("change", onSystemChange)
-
-  return () => {
-    listeners.delete(listener)
-    media?.removeEventListener("change", onSystemChange)
-  }
-}
+/** The instance the application uses. Tests build their own. */
+export const themeStore: ThemeStore = makeThemeStore()
