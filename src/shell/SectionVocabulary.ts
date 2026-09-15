@@ -12,7 +12,7 @@ export interface SectionCopy {
  * Every line says what the screen is for and what to do next. "No data" tells a
  * person neither, and an app with nothing in it should not read as broken.
  */
-export const EMPTY_STATES: Record<Section, SectionCopy> = {
+export const EMPTY_STATES: Record<Exclude<Section, "settings">, SectionCopy> = {
   dashboard: {
     title: "Nothing to project yet",
     description:
@@ -37,9 +37,5 @@ export const EMPTY_STATES: Record<Section, SectionCopy> = {
     title: "No scenarios yet",
     description:
       "A scenario asks what a change would cost in time: a higher rate, a large purchase, selling an asset. Build one to compare it against where you are heading."
-  },
-  settings: {
-    title: "Settings",
-    description: "The household, the goal, storage and backup."
   }
 }

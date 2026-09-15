@@ -6,7 +6,7 @@ import { AppShell } from "@/shell/AppShell"
 
 const renderShell = (current: Parameters<typeof AppShell>[0]["current"] = "dashboard") =>
   render(
-    <AppShell current={current} aside={<button type="button">Appearance</button>}>
+    <AppShell current={current}>
       <h1>Panel</h1>
     </AppShell>
   )
@@ -40,10 +40,9 @@ describe("the sidebar", () => {
     expect(screen.getByRole("link", { name: "Scenarios" })).toHaveAttribute("href", "#/scenarios")
   })
 
-  it("renders its children and its aside", () => {
+  it("renders its children", () => {
     renderShell()
     expect(screen.getByRole("heading", { name: "Panel" })).toBeInTheDocument()
-    expect(screen.getByRole("button", { name: "Appearance" })).toBeInTheDocument()
   })
 })
 

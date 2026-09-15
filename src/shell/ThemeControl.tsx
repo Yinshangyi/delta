@@ -18,9 +18,9 @@ const OPTIONS: ReadonlyArray<{ value: ThemePreference; label: string }> = [
 export function ThemeControl({ preference, onChange }: ThemeControlProps) {
   return (
     <fieldset>
-      <legend className="text-muted mb-2 font-mono text-[0.65rem] tracking-[0.15em] uppercase">
-        Appearance
-      </legend>
+      {/* A fieldset needs a legend, but the section above already carries the
+          heading — so it is announced and not drawn. */}
+      <legend className="sr-only">Appearance</legend>
       <div className="border-line flex overflow-hidden rounded-md border">
         {OPTIONS.map(({ value, label }) => (
           <label

@@ -5,8 +5,6 @@ import type { ReactNode } from "react"
 export interface AppShellProps {
   readonly current: Section
   readonly children: ReactNode
-  /** Rendered in the sidebar's footer. The theme control arrives this way. */
-  readonly aside?: ReactNode
 }
 
 /**
@@ -17,7 +15,7 @@ export interface AppShellProps {
  * that the sidebar becomes a horizontal bar rather than eating half the width
  * — a narrow window is not a target, but it should not look broken either.
  */
-export function AppShell({ current, children, aside }: AppShellProps) {
+export function AppShell({ current, children }: AppShellProps) {
   return (
     <div className="bg-ground text-ink flex min-h-dvh flex-col md:flex-row">
       <nav
@@ -48,12 +46,6 @@ export function AppShell({ current, children, aside }: AppShellProps) {
             )
           })}
         </ul>
-
-        {aside === undefined ? null : (
-          <div className="border-line border-t px-3 py-3 md:mt-auto md:border-t-0 md:py-4">
-            {aside}
-          </div>
-        )}
       </nav>
 
       <main className="min-w-0 flex-1 px-4 py-6 sm:px-6 md:px-10 md:py-8">{children}</main>

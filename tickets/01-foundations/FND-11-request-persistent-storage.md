@@ -15,8 +15,8 @@ As a **household member**, I want **the browser to treat my financial data as du
 ## Acceptance criteria
 
 - [x] `navigator.storage.persist()` requested once at first run
-- [ ] Current persistence state and usage are readable and shown in Settings
-- [ ] If persistence is denied, the user is told plainly and pointed at export
+- [x] Current persistence state and usage are readable and shown in Settings
+- [x] If persistence is denied, the user is told plainly and pointed at export
 - [x] Failure never blocks the app from starting
 
 ## Notes
