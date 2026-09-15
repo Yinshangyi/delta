@@ -17,7 +17,7 @@ export interface EmptyStateProps {
  */
 export function EmptyState({ title, description, action }: EmptyStateProps) {
   return (
-    <div className="border-line bg-surface flex min-h-56 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-10 text-center">
+    <div className="border-line bg-surface flex min-h-56 flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-10 text-center sm:px-6">
       <p className="text-ink text-base font-semibold">{title}</p>
       <p className="text-muted max-w-sm text-sm">{description}</p>
       {action === undefined ? null : <div className="mt-2">{action}</div>}
