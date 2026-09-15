@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+/* Self-hosted: a local-first app should not fetch fonts from a third party at runtime. */
+@import "@fontsource-variable/public-sans";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+/*
+ * Design tokens. Tailwind 4 emits every @theme entry as a CSS custom property on
+ * :root, so `var(--color-accent)` and `bg-accent` name the same value.
+ * Direction: design-brief.md — a pro finance app, not a monochrome system look.
+ */
+@theme {
+  --color-ink: #0e1116;
+  --color-ground: #f4f6f8;
+  --color-surface: #ffffff;
+  --color-panel: #151a21;
+  --color-line: #dfe4ea;
+
+  --color-muted: #5b6672;
+  --color-accent: #2a5bd7;
+  --color-accent-soft: #e8eefc;
+  --color-positive: #0e7c5a;
+  --color-negative: #b4413c;
+  --color-estimated: #8a6d1f;
+
+  --font-sans: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+@layer base {
+  html {
+    background-color: var(--color-ground);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Every figure in Delta sits in a column that has to line up. */
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+}

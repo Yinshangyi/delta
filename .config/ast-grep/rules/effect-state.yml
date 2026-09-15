@@ -1,0 +1,93 @@
+id: no-imperative-stream-accumulation
+language: typescript
+severity: error
+message: Accumulating stream output by mutating an array inside `Effect.sync` — consume with a Sink or `Stream.scan`.
+note: |
+  Don't push stream emissions into a captured array from inside `Effect.sync`. Consume the stream
+  with a Sink (`Stream.run` / `Stream.runFold` / `Stream.runCollect`) or fold with `Stream.scan` /
+  `Stream.mapAccum`. Reach for a `Ref` (updated via `Ref.update`) only when the stream is
+  interrupt-bounded and the partial accumulation must survive interruption.
+rule:
+  all:
+    - any:
+        - { pattern: $X.push($$$) }
+        - { pattern: $X.unshift($$$) }
+        - { pattern: $X.splice($$$) }
+    - inside: { stopBy: end, pattern: Effect.sync($$$) }
+    - inside:
+        stopBy: end
+        any:
+          - { pattern: Stream.runForEach($$$) }
+          - { pattern: Stream.runForEachChunk($$$) }
+          - { pattern: Stream.tap($$$) }
+---
+id: no-array-mutation-in-effect-sync
+language: typescript
+severity: error
+message: Mutating a captured array inside `Effect.sync` — accumulate with a `Ref` instead.
+note: |
+  Pushing into a captured array from inside `Effect.sync` is an imperative side-effect that escapes
+  Effect's state model and races under concurrency. Hold the collection in a `Ref` and append with
+  `Ref.update(ref, Array.append(x))`; read it back with `Ref.get`. (`Mailbox`/`Queue`/`Channel.push`
+  return Effects and are `yield*`-ed, never wrapped in `Effect.sync`, so they are unaffected.)
+rule:
+  all:
+    - any:
+        - { pattern: $X.push($$$) }
+        - { pattern: $X.unshift($$$) }
+        - { pattern: $X.splice($$$) }
+    - inside: { stopBy: end, pattern: Effect.sync($$$) }
+    - not:
+        inside:
+          stopBy: end
+          any:
+            - { pattern: Stream.runForEach($$$) }
+            - { pattern: Stream.runForEachChunk($$$) }
+            - { pattern: Stream.tap($$$) }
+---
+id: no-imperative-stream-accumulation-tsx
+language: tsx
+severity: error
+message: Accumulating stream output by mutating an array inside `Effect.sync` — consume with a Sink or `Stream.scan`.
+note: |
+  Don't push stream emissions into a captured array from inside `Effect.sync`. Consume the stream
+  with a Sink (`Stream.run` / `Stream.runFold` / `Stream.runCollect`) or fold with `Stream.scan` /
+  `Stream.mapAccum`. Reach for a `Ref` (updated via `Ref.update`) only when the stream is
+  interrupt-bounded and the partial accumulation must survive interruption.
+rule:
+  all:
+    - any:
+        - { pattern: $X.push($$$) }
+        - { pattern: $X.unshift($$$) }
+        - { pattern: $X.splice($$$) }
+    - inside: { stopBy: end, pattern: Effect.sync($$$) }
+    - inside:
+        stopBy: end
+        any:
+          - { pattern: Stream.runForEach($$$) }
+          - { pattern: Stream.runForEachChunk($$$) }
+          - { pattern: Stream.tap($$$) }
+---
+id: no-array-mutation-in-effect-sync-tsx
+language: tsx
+severity: error
+message: Mutating a captured array inside `Effect.sync` — accumulate with a `Ref` instead.
+note: |
+  Pushing into a captured array from inside `Effect.sync` is an imperative side-effect that escapes
+  Effect's state model and races under concurrency. Hold the collection in a `Ref` and append with
+  `Ref.update(ref, Array.append(x))`; read it back with `Ref.get`. (`Mailbox`/`Queue`/`Channel.push`
+  return Effects and are `yield*`-ed, never wrapped in `Effect.sync`, so they are unaffected.)
+rule:
+  all:
+    - any:
+        - { pattern: $X.push($$$) }
+        - { pattern: $X.unshift($$$) }
+        - { pattern: $X.splice($$$) }
+    - inside: { stopBy: end, pattern: Effect.sync($$$) }
+    - not:
+        inside:
+          stopBy: end
+          any:
+            - { pattern: Stream.runForEach($$$) }
+            - { pattern: Stream.runForEachChunk($$$) }
+            - { pattern: Stream.tap($$$) }

@@ -1,0 +1,27 @@
+id: no-dynamic-import-type
+valid:
+  - 'type X = typeof import("@scope/pkg").Thing'
+invalid:
+  - "type Z = typeof import(somePath).Thing"
+---
+id: no-dynamic-import-type-tsx
+valid:
+  - 'type X = typeof import("@scope/pkg").Thing'
+invalid:
+  - "type Z = typeof import(somePath).Thing"
+---
+id: no-unsafe-cast
+valid:
+  - "const a = foo as Bar"
+  - "const b = xs as const"
+  - "const c = foo as ReadonlyArray<string>"
+invalid:
+  - "const a = foo as any"
+  - "const b = foo as unknown"
+  - "const c = foo as unknown as Bar"
+---
+id: no-unsafe-cast-tsx
+valid:
+  - "const a = foo as Bar"
+invalid:
+  - "const a = foo as any"

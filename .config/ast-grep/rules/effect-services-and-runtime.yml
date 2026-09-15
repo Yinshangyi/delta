@@ -1,0 +1,71 @@
+id: no-raw-fetch
+language: typescript
+severity: error
+message: Use the Effect `HttpClient`, never raw `fetch`.
+note: |
+  Make HTTP calls through the Effect `HttpClient` (`yield* HttpClient.HttpClient`; `client.execute`).
+  Never call raw `fetch` or wrap it in `Effect.tryPromise` — the injected client gives typed
+  errors, composable retry/timeout, and a stubbable layer in tests.
+rule:
+  pattern: fetch($$$ARGS)
+  kind: call_expression
+---
+id: no-erased-layer
+language: typescript
+severity: error
+message: Layer type argument is `unknown`/`any` — name the concrete service/error/dependency.
+note: |
+  A `Layer<…>` (or `Layer.Layer<…>`) must not erase its type arguments to `unknown` or `any`.
+  Name the concrete success service, the error type, and the dependency (R). The `never` error
+  slot is fine; `unknown`/`any` are not.
+rule:
+  kind: generic_type
+  all:
+    - any:
+        - has: { field: name, kind: type_identifier, regex: ^Layer$ }
+        - has:
+            field: name
+            kind: nested_type_identifier
+            has: { field: name, kind: type_identifier, regex: ^Layer$ }
+    - has:
+        field: type_arguments
+        kind: type_arguments
+        has:
+          kind: predefined_type
+          regex: ^(unknown|any)$
+---
+id: no-raw-fetch-tsx
+language: tsx
+severity: error
+message: Use the Effect `HttpClient`, never raw `fetch`.
+note: |
+  Make HTTP calls through the Effect `HttpClient` (`yield* HttpClient.HttpClient`; `client.execute`).
+  Never call raw `fetch` or wrap it in `Effect.tryPromise` — the injected client gives typed
+  errors, composable retry/timeout, and a stubbable layer in tests.
+rule:
+  pattern: fetch($$$ARGS)
+  kind: call_expression
+---
+id: no-erased-layer-tsx
+language: tsx
+severity: error
+message: Layer type argument is `unknown`/`any` — name the concrete service/error/dependency.
+note: |
+  A `Layer<…>` (or `Layer.Layer<…>`) must not erase its type arguments to `unknown` or `any`.
+  Name the concrete success service, the error type, and the dependency (R). The `never` error
+  slot is fine; `unknown`/`any` are not.
+rule:
+  kind: generic_type
+  all:
+    - any:
+        - has: { field: name, kind: type_identifier, regex: ^Layer$ }
+        - has:
+            field: name
+            kind: nested_type_identifier
+            has: { field: name, kind: type_identifier, regex: ^Layer$ }
+    - has:
+        field: type_arguments
+        kind: type_arguments
+        has:
+          kind: predefined_type
+          regex: ^(unknown|any)$

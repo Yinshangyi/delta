@@ -1,0 +1,77 @@
+id: no-unbound-catch
+language: typescript
+severity: error
+message: Binding-less `catch {` discards the failure — route it through Effect.
+note: |
+  A `catch {` with no error binding cannot inspect, log, or rethrow the failure — it is
+  structurally swallowed. Route failures through Effect instead of raw try/catch
+  (`Effect.catchAll`/`orElse`/`option`, or the catch handler of `Effect.try`/`Effect.tryPromise`).
+rule:
+  kind: catch_clause
+  all:
+    - has: { field: body, kind: statement_block }
+    - not:
+        has: { field: parameter, kind: identifier }
+---
+id: no-tag-access
+language: typescript
+severity: error
+ignores:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+message: Reads the `_tag` discriminant directly.
+note: |
+  `_tag` is an implementation detail of a tagged union. Never read it directly — dispatch via
+  `Match.valueTags` / `Match.tag` or narrow with `Schema.is` guards.
+rule:
+  pattern: $X._tag
+---
+id: no-unbound-catch-tsx
+language: tsx
+severity: error
+message: Binding-less `catch {` discards the failure — route it through Effect.
+note: |
+  A `catch {` with no error binding cannot inspect, log, or rethrow the failure — it is
+  structurally swallowed. Route failures through Effect instead of raw try/catch
+  (`Effect.catchAll`/`orElse`/`option`, or the catch handler of `Effect.try`/`Effect.tryPromise`).
+rule:
+  kind: catch_clause
+  all:
+    - has: { field: body, kind: statement_block }
+    - not:
+        has: { field: parameter, kind: identifier }
+---
+id: no-tag-access-tsx
+language: tsx
+severity: error
+ignores:
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+message: Reads the `_tag` discriminant directly.
+note: |
+  `_tag` is an implementation detail of a tagged union. Never read it directly — dispatch via
+  `Match.valueTags` / `Match.tag` or narrow with `Schema.is` guards.
+rule:
+  pattern: $X._tag
+---
+id: no-match-when-tag
+language: typescript
+severity: error
+message: "Use `Match.tag(...)` instead of `Match.when({ _tag: ... })`."
+note: |
+  Matching a tagged union on its discriminant should use the dedicated `Match.tag(tag, f)`
+  combinator, not the low-level `Match.when({ _tag: ... }, f)` object pattern. `Match.tag` reads
+  the intent directly and narrows by tag without restating the `_tag` field.
+rule:
+  pattern: "Match.when({ _tag: $T }, $$$ARGS)"
+---
+id: no-match-when-tag-tsx
+language: tsx
+severity: error
+message: "Use `Match.tag(...)` instead of `Match.when({ _tag: ... })`."
+note: |
+  Matching a tagged union on its discriminant should use the dedicated `Match.tag(tag, f)`
+  combinator, not the low-level `Match.when({ _tag: ... }, f)` object pattern. `Match.tag` reads
+  the intent directly and narrows by tag without restating the `_tag` field.
+rule:
+  pattern: "Match.when({ _tag: $T }, $$$ARGS)"

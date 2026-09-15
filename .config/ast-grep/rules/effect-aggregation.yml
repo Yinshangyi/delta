@@ -1,0 +1,39 @@
+id: no-array-alias
+language: typescript
+severity: error
+message: Import Effect's `Array` shadowing the global — never alias it (`as Arr`/`as Rec`...).
+note: |
+  Import `Array` from "effect" so it shadows the global, and call `Array.groupBy`, etc.
+  Aliasing (`Array as Arr`) hides the shadow and reads as the global — rename the import
+  AND every usage instead.
+rule:
+  kind: import_specifier
+  all:
+    - has: { field: name, regex: ^Array$ }
+    - has: { field: alias, kind: identifier }
+  inside:
+    kind: import_statement
+    stopBy: end
+    has:
+      field: source
+      regex: ^.effect.$
+---
+id: no-array-alias-tsx
+language: tsx
+severity: error
+message: Import Effect's `Array` shadowing the global — never alias it (`as Arr`/`as Rec`...).
+note: |
+  Import `Array` from "effect" so it shadows the global, and call `Array.groupBy`, etc.
+  Aliasing (`Array as Arr`) hides the shadow and reads as the global — rename the import
+  AND every usage instead.
+rule:
+  kind: import_specifier
+  all:
+    - has: { field: name, regex: ^Array$ }
+    - has: { field: alias, kind: identifier }
+  inside:
+    kind: import_statement
+    stopBy: end
+    has:
+      field: source
+      regex: ^.effect.$

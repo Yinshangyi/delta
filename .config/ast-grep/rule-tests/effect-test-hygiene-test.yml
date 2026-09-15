@@ -1,0 +1,58 @@
+id: no-shared-test-fixture-value
+valid:
+  # Pure builder function — fresh value per call, holds no shared state.
+  - "const makeThing = () => new Thing({ id: 1 });"
+  # Primitives are not shared mutable values.
+  - "const MAX = 35;"
+  - 'const NAME = "alpha";'
+  # vitest mocking API is test infrastructure, legitimately module-scope (wires vi.mock).
+  - "const spy = vi.fn();"
+  - "const recorded = vi.hoisted(() => ({ calls: [] }));"
+  # Effect/Layer/Schema descriptions are immutable blueprints rebuilt fresh per it.effect scope.
+  - "const merged = Layer.mergeAll(FooLive, BarLive);"
+  - "const stub = Layer.mock(Service, { run: () => Effect.void });"
+  - "const piped = Service.layer.pipe(Layer.provide(Store));"
+  - "const configLive = Layer.succeed(MaxItems)(20);"
+  - "const program = Effect.gen(function* () { yield* Effect.void; });"
+  - "const Decoded = Schema.Union([Idle, Running]);"
+  - "const decode = Schema.decodeUnknownSync(Widget);"
+  # Layer / stub builder helpers (not make*/build*/create*) return descriptions, not data.
+  - "const fooLayer = layerFromSecret(Redacted.make(SECRET));"
+  - "const accepts = stubGateway(() => Effect.succeed(value));"
+  - "const seeded = seededFeatureLayer(Feature.cases.first.make({}));"
+  # Per-test fixtures live inside the test body — not module scope.
+  - |
+    it.effect("does a thing", () =>
+      Effect.gen(function* () {
+        const props = { a: 1 };
+        const thing = new Thing({ id: 1 });
+        expect(props.a).toBe(1);
+      }));
+invalid:
+  - "const thing = new Thing({ id: 1 });"
+  - "const thing = Thing.of({ id: 1 });"
+  - 'const value = Foo.cases.Bar.make({ id: "a" });'
+  - 'const label = Label.make("x");'
+  - "const fixture = buildFixture();"
+  - 'const outputs = makeOutputs({ html: "" });'
+  - "const props = { a: 1, b: 2 };"
+  - "const items = [1, 2, 3];"
+  - "export const shared = new Thing({});"
+---
+id: no-shared-test-fixture-value-tsx
+valid:
+  # Pure builder function — fresh value per call.
+  - "const makeThing = () => new Thing({ id: 1 });"
+  # Query / accessor helper — an arrow function, not a value.
+  - 'const firstButton = () => screen.getByRole("button");'
+  - "const MAX = 35;"
+  - "const spy = vi.fn();"
+  - "const stub = Layer.mock(Service, { run: () => Effect.void });"
+  - "const piped = Service.layer.pipe(Layer.provide(Store));"
+invalid:
+  - "const thing = new Thing({ id: 1 });"
+  - "const thing = Thing.of({ id: 1 });"
+  - "const fixture = buildFixture();"
+  - "const props = { a: 1, b: 2 };"
+  - "const items = [1, 2, 3];"
+  - "export const shared = new Thing({});"

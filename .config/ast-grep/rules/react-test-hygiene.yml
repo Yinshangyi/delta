@@ -1,0 +1,46 @@
+id: no-vi-mock-in-dsl-tests
+language: tsx
+severity: error
+files:
+  - "**/dsl/**/*.browser.unit.test.tsx"
+message: DSL-layer component tests must be vi.mock-free — render the pure leaf with plain props.
+note: |
+  A self-sufficient presentational leaf has no external chains to stub: its inputs arrive as
+  props, so `@testing-library/react` `render(<Component … />)` with `vi.fn()` handlers is enough.
+  Reaching for `vi.mock` here means the component is pulling a dependency it should receive as a
+  prop — fix the seam, don't mock it.
+rule:
+  pattern: vi.mock($$$ARGS)
+---
+id: no-create-root-in-component-tests
+language: tsx
+severity: error
+files:
+  - "**/*.browser.unit.test.tsx"
+message: No manual createRoot / react-dom test-utils in component tests — use @testing-library/react render.
+note: |
+  RTL's `render` plus a global `afterEach(cleanup)` is the canonical mount/unmount path.
+  Hand-rolling `createRoot` + manual `act` re-implements what RTL already does, loses the
+  automatic cleanup, and bypasses the queries the rest of the suite relies on. Importing from
+  `react-dom/client` or `react-dom/test-utils` in a component test signals this anti-pattern.
+rule:
+  any:
+    - pattern: createRoot($$$ARGS)
+    - pattern: $OBJ.createRoot($$$ARGS)
+    - kind: import_statement
+      has:
+        field: source
+        regex: "react-dom/(client|test-utils)"
+---
+id: no-stub-env-in-component-tests
+language: tsx
+severity: error
+files:
+  - "**/*.browser.unit.test.tsx"
+message: No vi.stubEnv in component tests — seed env through the test harness / config-provider seam.
+note: |
+  Mutating `process.env` through `vi.stubEnv` leaks across the shared browser worker and races
+  framework build-time env inlining. Provide environment values through your test harness's
+  config seam instead of stubbing the global.
+rule:
+  pattern: vi.stubEnv($$$ARGS)

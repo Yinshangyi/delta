@@ -1,0 +1,79 @@
+id: no-unsafe-cast
+language: typescript
+severity: error
+message: Don't cast through `any`/`unknown` — derive the type from a schema, constructor, or guard.
+note: |
+  `as any` / `as unknown` (and the `as unknown as T` double cast) silently discard all type
+  safety. Decode external data through a Schema, build branded values via smart constructors,
+  or narrow with a type guard instead of asserting through any/unknown.
+rule:
+  any:
+    - pattern: $X as any
+    - pattern: $X as unknown
+---
+id: no-dynamic-import-type
+language: typescript
+severity: error
+message: Dynamic `import()` type with a non-literal module path.
+note: |
+  An `import()` type position must use a string-literal module path
+  (`typeof import("@scope/pkg").X` is allowed, e.g. for circular-dependency type refs).
+  A computed or identifier path is unresolvable to readers and tooling — ban it.
+rule:
+  kind: call_expression
+  all:
+    - has: { field: function, regex: "^import$" }
+    - has:
+        field: arguments
+        kind: arguments
+        not:
+          has: { kind: string }
+    - inside:
+        stopBy: end
+        any:
+          - kind: type_alias_declaration
+          - kind: type_annotation
+          - kind: type_query
+          - kind: type_arguments
+          - kind: type_predicate
+          - kind: as_expression
+---
+id: no-unsafe-cast-tsx
+language: tsx
+severity: error
+message: Don't cast through `any`/`unknown` — derive the type from a schema, constructor, or guard.
+note: |
+  `as any` / `as unknown` (and the `as unknown as T` double cast) silently discard all type
+  safety. Decode external data through a Schema, build branded values via smart constructors,
+  or narrow with a type guard instead of asserting through any/unknown.
+rule:
+  any:
+    - pattern: $X as any
+    - pattern: $X as unknown
+---
+id: no-dynamic-import-type-tsx
+language: tsx
+severity: error
+message: Dynamic `import()` type with a non-literal module path.
+note: |
+  An `import()` type position must use a string-literal module path
+  (`typeof import("@scope/pkg").X` is allowed, e.g. for circular-dependency type refs).
+  A computed or identifier path is unresolvable to readers and tooling — ban it.
+rule:
+  kind: call_expression
+  all:
+    - has: { field: function, regex: "^import$" }
+    - has:
+        field: arguments
+        kind: arguments
+        not:
+          has: { kind: string }
+    - inside:
+        stopBy: end
+        any:
+          - kind: type_alias_declaration
+          - kind: type_annotation
+          - kind: type_query
+          - kind: type_arguments
+          - kind: type_predicate
+          - kind: as_expression

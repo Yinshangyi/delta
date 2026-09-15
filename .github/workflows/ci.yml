@@ -1,0 +1,148 @@
+# Every guard the project has, run on every push and pull request. The hooks in
+# .claude/hooks/ catch these at edit time; this is the copy that cannot be
+# skipped, bypassed, or run with a stale tool.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A new push supersedes the run in flight for the same branch.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "24"
+
+jobs:
+  check:
+    name: Types, lint, boundaries, node tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # Ordered cheapest-first, so an obvious failure reports in seconds.
+      # Each step runs even if an earlier one failed: one run should report
+      # every problem, not just the first.
+      - name: Format
+        if: ${{ !cancelled() }}
+        run: pnpm format:check
+
+      - name: Lint
+        if: ${{ !cancelled() }}
+        run: pnpm lint
+
+      - name: Structural idioms
+        if: ${{ !cancelled() }}
+        run: pnpm ast-grep
+
+      - name: Rule tests
+        if: ${{ !cancelled() }}
+        run: pnpm ast-grep:test
+
+      - name: Boundaries
+        if: ${{ !cancelled() }}
+        run: pnpm lint:boundaries
+
+      - name: Types
+        if: ${{ !cancelled() }}
+        run: pnpm type-check
+
+      - name: Node tests
+        if: ${{ !cancelled() }}
+        run: pnpm test:node
+
+  browser:
+    name: Browser tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      # ~90 MB of chromium. Keyed on the lockfile, so it is fetched again only
+      # when the playwright version moves.
+      - name: Cache chromium
+        id: chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: chromium-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+
+      - name: Install chromium
+        if: steps.chromium.outputs.cache-hit != 'true'
+        run: pnpm exec playwright install chromium --with-deps
+
+      - run: pnpm test:browser
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      # The bundle is the product — it is also the sales funnel, and SQLite's
+      # wasm is four times the size of the application. Report it every run so
+      # a regression is visible rather than discovered.
+      - name: Report bundle size
+        run: |
+          {
+            echo "### Bundle"
+            echo
+            echo '| File | Raw | Gzipped |'
+            echo '|---|---:|---:|'
+            find dist/assets -type f \( -name '*.js' -o -name '*.css' -o -name '*.wasm' \) \
+              -not -name '*.map' -printf '%f\t%s\n' \
+              | sort -k2 -rn \
+              | while IFS=$'\t' read -r name bytes; do
+                  gz=$(gzip -c "dist/assets/$name" | wc -c)
+                  # shellcheck disable=SC2016  # the backticks are markdown
+                  printf '| `%s` | %s | %s |\n' \
+                    "$name" \
+                    "$(numfmt --to=iec --suffix=B "$bytes")" \
+                    "$(numfmt --to=iec --suffix=B "$gz")"
+                done
+            echo
+            echo "Total: $(du -sh dist | cut -f1)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7

@@ -1,0 +1,29 @@
+id: no-imperative-stream-accumulation
+valid:
+  - "const xs = Stream.run(s, Sink.collectAll())"
+  - "Stream.runForEach((x) => Ref.update(ref, Array.append(x)))"
+  - "Effect.sync(() => arr.push(x))"
+invalid:
+  - "Stream.runForEach((x) => Effect.sync(() => { acc.push(x); }))"
+  - "Stream.tap((x) => Effect.sync(() => acc.push(x)))"
+---
+id: no-imperative-stream-accumulation-tsx
+valid:
+  - "Effect.sync(() => arr.push(x))"
+invalid:
+  - "Stream.runForEach((x) => Effect.sync(() => { acc.push(x); }))"
+---
+id: no-array-mutation-in-effect-sync
+valid:
+  - "Ref.update(ref, Array.append(x))"
+  - "Stream.runForEach((x) => Effect.sync(() => acc.push(x)))"
+  - "const e = channel.push(x)"
+invalid:
+  - "Effect.sync(() => { captured.push({ url }); })"
+  - "Effect.sync(() => arr.push(x))"
+---
+id: no-array-mutation-in-effect-sync-tsx
+valid:
+  - "Ref.update(ref, Array.append(x))"
+invalid:
+  - "Effect.sync(() => arr.push(x))"

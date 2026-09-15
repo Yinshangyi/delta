@@ -1,0 +1,221 @@
+id: no-json-parse
+language: typescript
+severity: error
+message: Don't call `JSON.parse` — deserialize through `Schema.decodeSync(Schema.fromJsonString(S))`.
+note: |
+  Parse JSON only through Schema. Replace `JSON.parse(s)` with
+  `Schema.decodeSync(Schema.fromJsonString(S))(s)` so malformed JSON is unrepresentable.
+rule:
+  pattern: JSON.parse($$$ARGS)
+---
+id: no-json-stringify
+language: typescript
+severity: error
+message: Don't call `JSON.stringify` — serialize through `Schema.encodeSync(Schema.fromJsonString(S))`.
+note: |
+  Serialize JSON only through Schema. Replace `JSON.stringify(o)` with
+  `Schema.encodeSync(Schema.fromJsonString(S))(o)`.
+rule:
+  pattern: JSON.stringify($$$ARGS)
+---
+id: no-codec-in-map
+language: typescript
+severity: error
+message: Don't decode/encode per-item in `.map()` — batch with `Schema.{decode,encode}Sync(Schema.Array(S))`.
+note: |
+  Never call a codec per-item. Batch once with `Schema.decodeSync(Schema.Array(S))(xs)` /
+  `Schema.encodeSync(Schema.Array(S))(xs)` instead of `xs.map(x => Schema.decodeSync(S)(x))`.
+  Targets `arr.map((x) => Schema.{decode,encode}*(...)(x))` — point-free `Effect.map(codec)`
+  and field codecs inside a row constructor are left alone.
+rule:
+  pattern: $ARR.map(($P) => $DEC($P))
+constraints:
+  DEC:
+    regex: 'Schema\.(decode|encode)'
+---
+id: no-unknown-json
+language: typescript
+severity: error
+message: Decode through a real schema — never the untyped-JSON escape hatch.
+note: |
+  Edge parsing/decoding must use a type-safe schema. Replace `Schema.UnknownFromJsonString` /
+  `Schema.fromJsonString(Schema.Unknown|Any)` with a real domain Schema — define a structural
+  `Schema.Struct`/`Schema.Class` of the shape if none exists.
+rule:
+  any:
+    - pattern: Schema.UnknownFromJsonString
+    - pattern: Schema.fromJsonString(Schema.Unknown)
+    - pattern: Schema.fromJsonString(Schema.Any)
+---
+id: no-decode-cast
+language: typescript
+severity: error
+message: Don't cast a decode result — decode with a schema whose Type IS the target.
+note: |
+  A cast on a `Schema.decode*` result defeats the type safety the decode provides
+  (`decode(...)(x) as T`). Decode through a schema whose `Type` already is `T`.
+rule:
+  kind: as_expression
+  has:
+    stopBy: end
+    kind: member_expression
+    regex: ^Schema\.(decodeSync|decodeUnknownSync|decode|decodeUnknown)$
+---
+id: no-decode-annotation
+language: typescript
+severity: error
+message: Don't annotate a Schema decode/encode result — let TypeScript infer it.
+note: |
+  The schema is the source of truth for the decoded/encoded type. `const x: T =
+  Schema.decodeSync(S)(v)` restates (and can drift from) the inferred type — drop the
+  annotation: `const x = Schema.decodeSync(S)(v)`.
+rule:
+  kind: variable_declarator
+  all:
+    - has: { field: type, kind: type_annotation }
+    - has:
+        field: value
+        has:
+          stopBy: end
+          kind: member_expression
+          regex: ^Schema\.(decodeSync|decodeUnknownSync|decode|decodeUnknown|encodeSync|encodeUnknownSync|encode|encodeUnknown)$
+---
+id: no-hoisted-decoder
+language: typescript
+severity: error
+message: Inline the JSON decode/encode call — don't hoist it into a module-level const.
+note: |
+  Don't bind a partially-applied JSON codec to a const (`const decodeX =
+  Schema.decodeUnknownSync(Schema.fromJsonString(S))`). Inline the call at the use site:
+  `Schema.decodeUnknownSync(Schema.fromJsonString(S))(x)`. Naming the SCHEMA/codec const
+  (`const SFromJson = Schema.fromJsonString(S)`) and smart constructors over a non-JSON
+  schema are fine — only the hoisted `fromJsonString` decoder/encoder function is refused.
+rule:
+  kind: variable_declarator
+  has:
+    field: value
+    kind: call_expression
+    all:
+      - has:
+          {
+            field: function,
+            kind: member_expression,
+            regex: ^Schema\.(decodeSync|decodeUnknownSync|decode|decodeUnknown|encodeSync|encodeUnknownSync|encode|encodeUnknown)$
+          }
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            kind: call_expression
+            has: { field: function, kind: member_expression, regex: ^Schema\.fromJsonString$ }
+---
+id: no-json-parse-tsx
+language: tsx
+severity: error
+message: Don't call `JSON.parse` — deserialize through `Schema.decodeSync(Schema.fromJsonString(S))`.
+note: |
+  Parse JSON only through Schema. Replace `JSON.parse(s)` with
+  `Schema.decodeSync(Schema.fromJsonString(S))(s)` so malformed JSON is unrepresentable.
+rule:
+  pattern: JSON.parse($$$ARGS)
+---
+id: no-json-stringify-tsx
+language: tsx
+severity: error
+message: Don't call `JSON.stringify` — serialize through `Schema.encodeSync(Schema.fromJsonString(S))`.
+note: |
+  Serialize JSON only through Schema. Replace `JSON.stringify(o)` with
+  `Schema.encodeSync(Schema.fromJsonString(S))(o)`.
+rule:
+  pattern: JSON.stringify($$$ARGS)
+---
+id: no-codec-in-map-tsx
+language: tsx
+severity: error
+message: Don't decode/encode per-item in `.map()` — batch with `Schema.{decode,encode}Sync(Schema.Array(S))`.
+note: |
+  Never call a codec per-item. Batch once with `Schema.decodeSync(Schema.Array(S))(xs)` /
+  `Schema.encodeSync(Schema.Array(S))(xs)` instead of `xs.map(x => Schema.decodeSync(S)(x))`.
+  Targets `arr.map((x) => Schema.{decode,encode}*(...)(x))` — point-free `Effect.map(codec)`
+  and field codecs inside a row constructor are left alone.
+rule:
+  pattern: $ARR.map(($P) => $DEC($P))
+constraints:
+  DEC:
+    regex: 'Schema\.(decode|encode)'
+---
+id: no-unknown-json-tsx
+language: tsx
+severity: error
+message: Decode through a real schema — never the untyped-JSON escape hatch.
+note: |
+  Edge parsing/decoding must use a type-safe schema. Replace `Schema.UnknownFromJsonString` /
+  `Schema.fromJsonString(Schema.Unknown|Any)` with a real domain Schema — define a structural
+  `Schema.Struct`/`Schema.Class` of the shape if none exists.
+rule:
+  any:
+    - pattern: Schema.UnknownFromJsonString
+    - pattern: Schema.fromJsonString(Schema.Unknown)
+    - pattern: Schema.fromJsonString(Schema.Any)
+---
+id: no-decode-cast-tsx
+language: tsx
+severity: error
+message: Don't cast a decode result — decode with a schema whose Type IS the target.
+note: |
+  A cast on a `Schema.decode*` result defeats the type safety the decode provides
+  (`decode(...)(x) as T`). Decode through a schema whose `Type` already is `T`.
+rule:
+  kind: as_expression
+  has:
+    stopBy: end
+    kind: member_expression
+    regex: ^Schema\.(decodeSync|decodeUnknownSync|decode|decodeUnknown)$
+---
+id: no-decode-annotation-tsx
+language: tsx
+severity: error
+message: Don't annotate a Schema decode/encode result — let TypeScript infer it.
+note: |
+  The schema is the source of truth for the decoded/encoded type. `const x: T =
+  Schema.decodeSync(S)(v)` restates (and can drift from) the inferred type — drop the
+  annotation: `const x = Schema.decodeSync(S)(v)`.
+rule:
+  kind: variable_declarator
+  all:
+    - has: { field: type, kind: type_annotation }
+    - has:
+        field: value
+        has:
+          stopBy: end
+          kind: member_expression
+          regex: ^Schema\.(decodeSync|decodeUnknownSync|decode|decodeUnknown|encodeSync|encodeUnknownSync|encode|encodeUnknown)$
+---
+id: no-hoisted-decoder-tsx
+language: tsx
+severity: error
+message: Inline the JSON decode/encode call — don't hoist it into a module-level const.
+note: |
+  Don't bind a partially-applied JSON codec to a const (`const decodeX =
+  Schema.decodeUnknownSync(Schema.fromJsonString(S))`). Inline the call at the use site:
+  `Schema.decodeUnknownSync(Schema.fromJsonString(S))(x)`. Naming the SCHEMA/codec const
+  (`const SFromJson = Schema.fromJsonString(S)`) and smart constructors over a non-JSON
+  schema are fine — only the hoisted `fromJsonString` decoder/encoder function is refused.
+rule:
+  kind: variable_declarator
+  has:
+    field: value
+    kind: call_expression
+    all:
+      - has:
+          {
+            field: function,
+            kind: member_expression,
+            regex: ^Schema\.(decodeSync|decodeUnknownSync|decode|decodeUnknown|encodeSync|encodeUnknownSync|encode|encodeUnknown)$
+          }
+      - has:
+          field: arguments
+          has:
+            stopBy: end
+            kind: call_expression
+            has: { field: function, kind: member_expression, regex: ^Schema\.fromJsonString$ }

@@ -1,0 +1,66 @@
+{
+  "name": "delta",
+  "version": "0.0.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "ast-grep": "ast-grep scan -c .config/ast-grep/sgconfig.yml",
+    "ast-grep:fix": "ast-grep scan -c .config/ast-grep/sgconfig.yml --update-all",
+    "ast-grep:test": "ast-grep test -c .config/ast-grep/sgconfig.yml --skip-snapshot-tests",
+    "build": "tsc --noEmit -p tsconfig.json && vite build",
+    "dev": "vite",
+    "format": "oxfmt --write",
+    "format:check": "oxfmt --check",
+    "lint": "oxlint",
+    "lint:boundaries": "depcruise src",
+    "lint:boundaries:graph": "depcruise src --output-type mermaid",
+    "lint:fix": "oxlint --fix",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:browser": "vitest run --project='browser:*'",
+    "test:node": "vitest run --project='node:*'",
+    "test:watch": "vitest",
+    "type-check": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.test.json && tsc --noEmit -p tsconfig.node.json"
+  },
+  "dependencies": {
+    "@effect/atom-react": "4.0.0-rc.115",
+    "@effect/sql-sqlite-wasm": "4.0.0-rc.115",
+    "@effect/wa-sqlite": "0.1.2",
+    "@fontsource-variable/public-sans": "5.3.0",
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "effect": "4.0.0-rc.115",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "scheduler": "0.27.0",
+    "temporal-polyfill": "1.0.5"
+  },
+  "devDependencies": {
+    "@ast-grep/cli": "0.45.3",
+    "@effect/vitest": "4.0.0-rc.115",
+    "@tailwindcss/vite": "4.3.3",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "26.5.1",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "@vitejs/plugin-react": "6.1.1",
+    "@vitest/browser": "5.0.0",
+    "@vitest/browser-playwright": "5.0.0",
+    "dependency-cruiser": "18.3.1",
+    "fast-check": "4.10.0",
+    "oxfmt": "0.68.0",
+    "oxlint": "1.83.0",
+    "playwright": "^1.63.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "6.0.3",
+    "vite": "8.3.0",
+    "vitest": "5.0.0"
+  },
+  "packageManager": "pnpm@10.27.0",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@ast-grep/cli"
+    ]
+  }
+}

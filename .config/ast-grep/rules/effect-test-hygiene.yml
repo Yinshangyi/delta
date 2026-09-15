@@ -1,0 +1,86 @@
+id: no-shared-test-fixture-value
+language: typescript
+severity: error
+files:
+  - "**/*.unit.test.ts"
+message: Module-scope test fixture value couples tests — inline it per test or build it with a fresh-per-call helper.
+note: |
+  A shared module-scope value — an object/array literal, a `new` instance, or a
+  value-constructor call (`.make()`/`.of()`, or a `make*`/`build*`/`create*` helper) — is
+  reachable and mutatable by every test in the file, hiding what each test needs and risking
+  cross-test bleed. Inline the fixture inside the `it(...)`/`it.effect(...)` that uses it, or
+  expose a pure builder function (`const makeFoo = () => ({...})`) so each test gets a fresh
+  value. Intentionally NOT flagged — these are immutable blueprints, not mutable data: Effect
+  and Schema descriptions and layers (`Layer.*`, `Effect.*`, `Schema.*`, `*.pipe(...)`, and
+  layer/stub builder helpers), which `it.effect` rebuilds fresh per test scope; primitive
+  constants; pure helper / query-helper arrow functions; and the vitest mocking API
+  (`vi.fn`/`vi.hoisted`/`vi.spyOn`/…).
+rule:
+  kind: lexical_declaration
+  all:
+    - has:
+        kind: variable_declarator
+        has:
+          field: value
+          any:
+            - kind: object
+            - kind: array
+            - kind: new_expression
+            # A value-constructor call produces shared data: a `.make()`/`.of()` factory, or a
+            # `make*`/`build*`/`create*` helper. Effect/Schema/Layer descriptions (`Layer.mock`,
+            # `Effect.gen`, `Schema.Union`, `*.pipe(Layer.provide(...))`, `layerFromSecret(...)`)
+            # are immutable blueprints rebuilt fresh per `it.effect` scope — not data — so they
+            # are left unmatched here rather than carved out after the fact.
+            - all:
+                - kind: call_expression
+                - has:
+                    field: function
+                    any:
+                      - kind: member_expression
+                        has: { field: property, regex: "^(make|of)$" }
+                      - kind: identifier
+                        regex: "^(make|build|create)"
+    - any:
+        - inside: { kind: program }
+        - inside: { kind: export_statement, inside: { kind: program } }
+---
+id: no-shared-test-fixture-value-tsx
+language: tsx
+severity: error
+files:
+  - "**/*.unit.test.tsx"
+message: Module-scope test fixture value couples tests — inline it per test or build it with a fresh-per-call helper.
+note: |
+  A shared module-scope value — an object/array literal, a `new` instance, or a
+  value-constructor call (`.make()`/`.of()`, or a `make*`/`build*`/`create*` helper) — is
+  reachable and mutatable by every test in the file, hiding what each test needs and risking
+  cross-test bleed. Inline the fixture inside the `it(...)`/`it.effect(...)` that uses it, or
+  expose a pure builder function (`const makeFoo = () => ({...})`) so each test gets a fresh
+  value. Intentionally NOT flagged — these are immutable blueprints, not mutable data: Effect
+  and Schema descriptions and layers (`Layer.*`, `Effect.*`, `Schema.*`, `*.pipe(...)`, and
+  layer/stub builder helpers), which `it.effect` rebuilds fresh per test scope; primitive
+  constants; pure helper / query-helper arrow functions; and the vitest mocking API
+  (`vi.fn`/`vi.hoisted`/`vi.spyOn`/…).
+rule:
+  kind: lexical_declaration
+  all:
+    - has:
+        kind: variable_declarator
+        has:
+          field: value
+          any:
+            - kind: object
+            - kind: array
+            - kind: new_expression
+            - all:
+                - kind: call_expression
+                - has:
+                    field: function
+                    any:
+                      - kind: member_expression
+                        has: { field: property, regex: "^(make|of)$" }
+                      - kind: identifier
+                        regex: "^(make|build|create)"
+    - any:
+        - inside: { kind: program }
+        - inside: { kind: export_statement, inside: { kind: program } }

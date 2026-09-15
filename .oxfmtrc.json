@@ -1,0 +1,25 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "printWidth": 100,
+  "trailingComma": "none",
+  "sortImports": {
+    "groups": [
+      "value-builtin",
+      "value-external",
+      {
+        "newlinesBetween": true
+      },
+      "value-internal",
+      {
+        "newlinesBetween": true
+      },
+      "value-parent",
+      "value-sibling",
+      "value-index"
+    ]
+  },
+  "sortTailwindcss": true,
+  "sortPackageJson": true,
+  "ignorePatterns": ["dist", "**/*.md"]
+}

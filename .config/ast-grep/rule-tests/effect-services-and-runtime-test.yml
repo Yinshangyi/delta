@@ -1,0 +1,29 @@
+id: no-raw-fetch
+valid:
+  - "const r = client.execute(HttpClientRequest.get(url))"
+  - "const r = obj.fetch(1)"
+invalid:
+  - "const r = fetch(url)"
+  - 'await fetch(u, { method: "POST" })'
+---
+id: no-raw-fetch-tsx
+valid:
+  - "const r = client.execute(HttpClientRequest.get(url))"
+invalid:
+  - "const r = fetch(url)"
+---
+id: no-erased-layer
+valid:
+  - "type T = Layer<Foo, never, Bar>"
+  - "type S = Layer.Layer<Svc, never, Dep>"
+  - "type D = Layer.Layer<Foo<unknown>, never, Bar>"
+invalid:
+  - "type T = Layer<unknown, never, never>"
+  - "type U = Layer<any, never, R>"
+  - "type S = Layer.Layer<never, unknown, unknown>"
+---
+id: no-erased-layer-tsx
+valid:
+  - "type T = Layer<Foo, never, Bar>"
+invalid:
+  - "type S = Layer.Layer<never, unknown, unknown>"

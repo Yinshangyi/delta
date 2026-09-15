@@ -1,0 +1,9 @@
+# Structural idiom gate. The rules say what the type system cannot: not "this
+# does not compile" but "this is not how we do it here, and here is why".
+#
+#   pnpm ast-grep        scan the tree
+#   pnpm ast-grep:fix    apply the rules that carry a fix
+ruleDirs:
+  - rules
+testConfigs:
+  - testDir: rule-tests

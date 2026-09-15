@@ -1,0 +1,96 @@
+id: no-json-parse
+valid:
+  - "const o = Schema.decodeSync(Schema.fromJsonString(Order))(jsonString)"
+invalid:
+  - "const o = JSON.parse(jsonString)"
+---
+id: no-json-parse-tsx
+valid:
+  - "const o = Schema.decodeSync(Schema.fromJsonString(Order))(jsonString)"
+invalid:
+  - "const o = JSON.parse(jsonString)"
+---
+id: no-json-stringify
+valid:
+  - "const s = Schema.encodeSync(Schema.fromJsonString(Order))(order)"
+invalid:
+  - "const s = JSON.stringify(order)"
+---
+id: no-json-stringify-tsx
+valid:
+  - "const s = Schema.encodeSync(Schema.fromJsonString(Order))(order)"
+invalid:
+  - "const s = JSON.stringify(order)"
+---
+id: no-codec-in-map
+valid:
+  - "const ys = xs.map((x) => x + 1)"
+  - "const orders = Schema.decodeSync(Schema.Array(Schema.fromJsonString(Order)))(jsonStrings)"
+  - "const eff = src.pipe(Effect.map(Schema.decodeUnknownSync(Order)))"
+  - "const rows = xs.map((row) => new Vo({ label: Schema.decodeSync(L)(row.label) }))"
+invalid:
+  - "const orders = xs.map((s) => Schema.decodeSync(S)(s))"
+  - "const orders = xs.map((s) => Schema.decodeUnknownSync(S)(s))"
+  - "const out = result.by_pattern.map((p) => Schema.encodeSync(Schema.fromJsonString(PatternSummary))(p))"
+---
+id: no-codec-in-map-tsx
+valid:
+  - "const ys = xs.map((x) => x + 1)"
+  - "const eff = src.pipe(Effect.map(Schema.decodeUnknownSync(Order)))"
+invalid:
+  - "const orders = xs.map((s) => Schema.decodeSync(S)(s))"
+---
+id: no-unknown-json
+valid:
+  - "const o = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s)"
+invalid:
+  - "const o = Schema.decodeUnknownSync(Schema.UnknownFromJsonString)(s)"
+  - "const o = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Unknown))(s)"
+  - "const o = Schema.decodeUnknownSync(Schema.fromJsonString(Schema.Any))(s)"
+---
+id: no-unknown-json-tsx
+valid:
+  - "const o = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s)"
+invalid:
+  - "const o = Schema.decodeUnknownSync(Schema.UnknownFromJsonString)(s)"
+---
+id: no-decode-cast
+valid:
+  - "const x = foo as Bar"
+  - "const o = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s)"
+invalid:
+  - "const o = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s) as Order"
+---
+id: no-decode-cast-tsx
+valid:
+  - "const x = foo as Bar"
+invalid:
+  - "const o = Schema.decodeSync(Order)(s) as Order"
+---
+id: no-decode-annotation
+valid:
+  - "const x = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s)"
+  - "const n: number = 1"
+invalid:
+  - "const x: ReadonlyArray<Order> = Schema.decodeUnknownSync(Schema.Array(Order))(xs)"
+---
+id: no-decode-annotation-tsx
+valid:
+  - "const x = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s)"
+invalid:
+  - "const x: Order = Schema.decodeSync(Order)(s)"
+---
+id: no-hoisted-decoder
+valid:
+  - "const Parser = Schema.fromJsonString(Order)"
+  - "const make = Schema.decodeSync(OrderId)"
+  - "const x = Schema.decodeUnknownSync(Schema.fromJsonString(Order))(s)"
+invalid:
+  - "const decodeBody = Schema.decodeUnknownSync(Schema.fromJsonString(InitializeResponse))"
+  - "const enc = Schema.encodeSync(Schema.fromJsonString(Order))"
+---
+id: no-hoisted-decoder-tsx
+valid:
+  - "const make = Schema.decodeSync(OrderId)"
+invalid:
+  - "const decodeBody = Schema.decodeUnknownSync(Schema.fromJsonString(InitializeResponse))"

@@ -1,0 +1,39 @@
+id: no-unbound-catch
+valid:
+  - "try { x() } catch (e) { throw e }"
+  - "try { x() } catch (e) { console.error(e); return [] }"
+invalid:
+  - "try { x() } catch { return null }"
+  - "try { x() } catch { /* ignore */ }"
+---
+id: no-unbound-catch-tsx
+valid:
+  - "try { x() } catch (e) { throw e }"
+invalid:
+  - "try { x() } catch { return null }"
+---
+id: no-tag-access
+valid:
+  - 'const v = { _tag: "A" }'
+  - "Match.valueTags(x, { A: () => 1 })"
+invalid:
+  - 'if (x._tag === "A") {}'
+---
+id: no-tag-access-tsx
+valid:
+  - 'const v = { _tag: "A" }'
+invalid:
+  - 'if (x._tag === "A") {}'
+---
+id: no-match-when-tag
+valid:
+  - 'Match.value(x).pipe(Match.tag("A", () => 1), Match.orElse(() => 0))'
+  - 'Match.when({ status: "ok" }, () => 1)'
+invalid:
+  - 'Match.when({ _tag: "A" }, () => 1)'
+---
+id: no-match-when-tag-tsx
+valid:
+  - 'Match.tag("A", () => 1)'
+invalid:
+  - 'Match.when({ _tag: "A" }, () => 1)'

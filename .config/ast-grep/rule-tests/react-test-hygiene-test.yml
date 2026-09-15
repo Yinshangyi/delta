@@ -1,0 +1,38 @@
+id: no-vi-mock-in-dsl-tests
+valid:
+  # Pure-leaf test: render with plain props + vi.fn handlers, no module mocking.
+  - |
+    it("forwards onSelect", () => {
+      const onSelect = vi.fn();
+      render(<Foo label="hi" onSelect={onSelect} />);
+      fireEvent.click(screen.getByRole("button", { name: "hi" }));
+      expect(onSelect).toHaveBeenCalledOnce();
+    });
+  # The spy/mock helpers themselves are fine — it is vi.mock (module replacement) that is banned here.
+  - "const onClick = vi.fn();"
+  - "const spy = vi.spyOn(obj, 'method');"
+invalid:
+  - 'vi.mock("./SomeModule", () => ({ useThing: () => ({}) }));'
+  - 'vi.mock("./SomeChild");'
+---
+id: no-create-root-in-component-tests
+valid:
+  # RTL render is the canonical mount path.
+  - 'render(<Foo title="hi" />);'
+  - 'import { render, screen } from "@testing-library/react";'
+invalid:
+  - 'import { createRoot } from "react-dom/client";'
+  - 'import { act } from "react-dom/test-utils";'
+  - |
+    const root = createRoot(container);
+    root.render(<Foo />);
+  - |
+    const root = ReactDOM.createRoot(container);
+    root.render(<Foo />);
+---
+id: no-stub-env-in-component-tests
+valid:
+  # Env is seeded through the test harness, not by mutating process.env.
+  - "render(<Foo />);"
+invalid:
+  - 'vi.stubEnv("SOME_ENV", "value");'

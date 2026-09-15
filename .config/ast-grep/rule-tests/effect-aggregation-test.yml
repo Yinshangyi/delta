@@ -1,0 +1,15 @@
+id: no-array-alias
+valid:
+  - import { Array } from "effect"
+  - import { Array as Arr } from "other-lib"
+  - import { Schema as S } from "effect"
+invalid:
+  - import { Array as Arr } from "effect"
+  - import { Effect, Schema, Array as Arr, Record as Rec } from "effect"
+---
+id: no-array-alias-tsx
+valid:
+  - import { Array } from "effect"
+  - import { Array as Arr } from "other-lib"
+invalid:
+  - import { Effect, Array as Arr } from "effect"
