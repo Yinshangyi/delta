@@ -4,14 +4,34 @@ import { join } from "node:path"
 import { describe, expect, it } from "vitest"
 
 /**
- * Reads the stylesheet rather than a rendered page: the palette is a contract
- * stated in one file, and parsing it checks that contract without depending on
- * how a bundler happens to process CSS in a test runner.
+ * Reads the stylesheet rather than a rendered page. This file guarantees the
+ * palette is *stated* correctly — that every role exists in both themes and
+ * every pair is legible. What it cannot see is what the browser finally paints,
+ * which is why `apply()` is covered separately in the browser project.
  */
-const stylesheet = await readFile(join(process.cwd(), "src", "index.css"), "utf8")
+const stylesheet = await readFile(join(import.meta.dirname, "..", "..", "index.css"), "utf8")
+
+const ROLES = [
+  "ground",
+  "surface",
+  "raised",
+  "line",
+  "ink",
+  "muted",
+  "accent",
+  "accent-ink",
+  "accent-soft",
+  "positive",
+  "negative",
+  "estimated"
+] as const
+
+type Role = (typeof ROLES)[number]
 
 const paletteIn = (block: string): ReadonlyMap<string, string> => {
-  const body = stylesheet.slice(stylesheet.indexOf(block) + block.length)
+  const start = stylesheet.indexOf(block)
+  expect(start, `no ${block} block — the stylesheet was reformatted`).toBeGreaterThan(-1)
+  const body = stylesheet.slice(start + block.length)
   const entries = body.slice(0, body.indexOf("}")).matchAll(/(--color-[\w-]+):\s*(#[0-9a-f]{6})/g)
   return new Map([...entries].map((match) => [match[1] as string, match[2] as string]))
 }
@@ -34,30 +54,35 @@ const contrast = (a: string, b: string): number => {
   return (high! + 0.05) / (low! + 0.05)
 }
 
-const colour = (palette: ReadonlyMap<string, string>, role: string): string => {
+const colour = (palette: ReadonlyMap<string, string>, role: Role): string => {
   const value = palette.get(`--color-${role}`)
   expect(value, `--color-${role} is missing`).toBeDefined()
   return value!
 }
 
-// The roles under test, not a fixture — nothing here is mutated, and each
-// case below is generated from it rather than sharing state through it.
-// ast-grep-ignore: no-shared-test-fixture-value
-const TEXT_ROLES = ["ink", "muted", "accent", "positive", "negative", "estimated"]
+const TEXT_ROLES = ["ink", "muted", "accent", "positive", "negative", "estimated"] as const
+
 const THEMES = [
   ["light", LIGHT],
   ["dark", DARK]
 ] as const
 
 describe("the palette", () => {
-  it("defines every role in both themes", () => {
-    expect([...LIGHT.keys()].sort()).toStrictEqual([...DARK.keys()].sort())
-    expect(LIGHT.size).toBeGreaterThan(8)
+  /**
+   * The parse is `indexOf` and a regex, which would truncate silently at an
+   * unexpected `}` and leave the contrast tests checking a handful of tokens
+   * while still passing. Accounting for every declaration in the file is what
+   * makes that impossible.
+   */
+  it("is read whole, not truncated by a stray brace", () => {
+    const declared = [...stylesheet.matchAll(/--color-[\w-]+:/g)].length
+    expect(LIGHT.size + DARK.size).toBe(declared)
   })
 
-  it("is designed rather than inverted — no role reuses its light value", () => {
-    const shared = [...LIGHT.entries()].filter(([token, value]) => DARK.get(token) === value)
-    expect(shared).toStrictEqual([])
+  it("defines exactly the same roles in both themes", () => {
+    const expected = ROLES.map((role) => `--color-${role}`).sort()
+    expect([...LIGHT.keys()].sort()).toStrictEqual(expected)
+    expect([...DARK.keys()].sort()).toStrictEqual(expected)
   })
 })
 
