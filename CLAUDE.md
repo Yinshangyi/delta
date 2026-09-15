@@ -56,6 +56,31 @@ on every edit. If a rule fires, the import is wrong — not the rule.
 `Atom` is primary-adapter-only. `SubscriptionRef` / `Queue` / `Mailbox` live
 inside `Layer.effect` bodies and never appear in a port's signature.
 
+## Atoms
+
+Atoms are how React reaches Effect, and the only way — nothing renders from a
+runtime directly. They live in `primary_adapters/reactivity/` and nowhere else.
+
+Two kinds, kept apart:
+
+- **App-state atoms** — the truth lives in `core`. Reads are
+  `appRuntime.atom(query)` over an `Effect` exported from
+  `core/use_cases/<feature>/<Name>Query.ts`; writes are `appRuntime.fn(...)`
+  over a `*UseCase`. The atom file imports that symbol and nothing else from
+  core.
+- **GUI-local atoms** — state nothing else cares about: a panel open or closed,
+  a selected tab. Plain `Atom.make` / `Atom.writable`, no core footprint.
+
+Atoms resolve to `AsyncState` from `@/shared/reactivity/AsyncState` —
+`resolveStream` for query atoms, `resolveMutation` for command atoms. **JSX
+never imports `AsyncResult`.** Components match the five variants with
+`Match.valueTags`.
+
+**Atoms are glue.** If an atom file contains any of the following, it belongs
+in a use case instead: a domain transformation, error handling that inspects a
+tagged union, two port calls in sequence, id generation, or an `Effect.gen`
+body longer than about three lines.
+
 ## React
 
 - **Leaf** `Foo.tsx` — props in, JSX out. No Effect, no atoms, no hooks beyond
@@ -89,6 +114,11 @@ inside `Layer.effect` bodies and never appear in a port's signature.
   migrations included. It is real SQLite, not a fake.
 - **No `vi.mock` of hooks. No `vi.hoisted`. No `createRoot`.** A component that
   needs its hooks mocked is a component that should have been a leaf with props.
+- **Never test an atom through React.** Atoms and their hooks are untested glue.
+  Mounting them to assert that a trigger dispatched its command re-checks the
+  library, not the code. The unit under test is the use case, driven directly
+  through its port. The reference project retired ~2400 lines of harness that
+  proved only tautologies; do not rebuild it here.
 - Assert through roles and accessible names, not DOM nodes or `container`.
 
 ## Commands

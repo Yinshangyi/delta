@@ -95,6 +95,15 @@ describe("the hexagon is enforced, not merely documented", () => {
     expect(output).toContain("no-circular")
   })
 
+  it("rejects core importing the React boundary", async () => {
+    const { code, output } = await cruise({
+      "src/modules/demo/core/use_cases/Bad.ts": `import { AsyncState } from "@/shared/reactivity/AsyncState"\nexport const bad = AsyncState\n`,
+      "src/shared/reactivity/AsyncState.ts": `export const AsyncState = 1\n`
+    })
+    expect(code).not.toBe(0)
+    expect(output).toContain("core-no-async-state")
+  })
+
   it("rejects the shell reaching into a module's core", async () => {
     const { code, output } = await cruise({
       "src/shell/Bad.ts": `import { run } from "@/modules/demo/core/use_cases/Run"\nexport const bad = run\n`,

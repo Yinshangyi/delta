@@ -34,6 +34,14 @@ called is a test that proves nothing.
 **No `vi.mock` of hooks. No `vi.hoisted`. No `createRoot`.** A component that
 needs its hooks mocked should have been a leaf taking props.
 
+**Never test an atom through React.** An atom plus its `useFoo` hook is glue: a
+runtime call and a wrapper around `useAtomSet`. Mounting it with a registry
+provider and Testing Library, to assert that pressing the button dispatched the
+command, tests the library rather than the code — and the harness costs more
+than everything it covers. The unit under test is the **use case**, acquired
+through its port and driven directly, with a co-located stub standing in for
+its dependencies.
+
 ## Databases are real
 
 Repository adapters run against `DatabaseInMemory` — the same wasm SQLite over

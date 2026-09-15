@@ -84,6 +84,17 @@ module.exports = {
       to: { path: "/node_modules/effect/.*/unstable/reactivity/" }
     },
     {
+      name: "core-no-async-state",
+      comment:
+        "core/** must not import shared/reactivity/**. AsyncState is the boundary between " +
+        "Effect's reactivity and React, which makes it a primary-adapter concern. The " +
+        "core-no-reactivity rule would not catch this: it forbids the edge to effect's " +
+        "reactivity module, and this would be an edge to ours.",
+      severity: "error",
+      from: { path: "^src/(modules/[^/]+/core|shared/domain)/" },
+      to: { path: "^src/shared/reactivity/" }
+    },
+    {
       name: "primary-no-secondary",
       comment:
         "primary_adapters/** must not import secondary_adapters/**. The two sides of " +
