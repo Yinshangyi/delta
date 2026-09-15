@@ -9,3 +9,6 @@ result
 
 # Real figures, kept out of the repository — see seed.local.md
 *.local.md
+
+# Screenshots vitest captures when a browser test fails — regenerated per run.
+.vitest/
