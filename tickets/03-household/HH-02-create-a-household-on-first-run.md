@@ -2,7 +2,7 @@
 id: HH-02
 title: Create a household on first run
 epic: household
-status: todo
+status: done
 size: S
 depends_on: [HH-01, SHL-06]
 spec: ["§5", "§65"]
@@ -14,7 +14,7 @@ As a **new user**, I want **to name my household and get started** so that **the
 
 ## Acceptance criteria
 
-- [ ] First run prompts for a household name and at least one person
-- [ ] The household name is editable later in Settings
-- [ ] No names, amounts or assumptions are hard-coded anywhere in the domain
-- [ ] After setup the dashboard renders without a projection and says why
+- [x] First run prompts for a household name and at least one person
+- [x] The household name is editable later in Settings
+- [x] No names, amounts or assumptions are hard-coded anywhere in the domain
+- [x] After setup the dashboard renders without a projection and says why
