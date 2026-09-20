@@ -69,8 +69,9 @@ often fails at *import* time rather than in an assertion, so a green test run
 alone proves less than it looks.
 
 All of the above also run per edited file as Claude Code hooks — see
-[`.claude/hooks/`](.claude/hooks/). Three of them exit 2 on a finding, which
-turns them from a report into a loop.
+[`tools/hooks/`](tools/hooks/). Three of them exit 2 on a finding, which turns
+them from a report into a loop. They need `.direnv/devshell-path`, written on
+shell entry, so run `direnv allow` once before relying on them.
 
 And all of them run again in CI, where they cannot be skipped:
 [`.github/workflows/ci.yml`](.github/workflows/ci.yml).

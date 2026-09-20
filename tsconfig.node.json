@@ -5,7 +5,8 @@
     "lib": ["esnext"],
     "types": ["node"],
     "incremental": true,
-    "tsBuildInfoFile": "node_modules/.cache/tsc/node.tsbuildinfo"
+    "tsBuildInfoFile": "node_modules/.cache/tsc/node.tsbuildinfo",
+    "allowImportingTsExtensions": true
   },
-  "include": ["vite.config.ts", "vitest.config.ts", "vitest.node.setup.ts"]
+  "include": ["vite.config.ts", "vitest.config.ts", "vitest.node.setup.ts", "tools/**/*.ts"]
 }

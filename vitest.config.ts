@@ -20,7 +20,7 @@ export default defineConfig({
         test: {
           name: "node:unit",
           environment: "node",
-          include: ["src/**/*.node.unit.test.ts"],
+          include: ["src/**/*.node.unit.test.ts", "tools/**/*.node.unit.test.ts"],
           setupFiles: ["./vitest.node.setup.ts"]
         }
       },

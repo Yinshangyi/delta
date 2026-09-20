@@ -4,22 +4,16 @@
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh LintFix" },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/lint-fix.sh"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh AstGrepCheck"
           },
           {
             "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/boundary-check.sh"
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh BoundaryCheck"
           },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/ast-grep-check.sh"
-          },
-          {
-            "type": "command",
-            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/format-fix.sh"
-          }
+          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh FormatFix" }
         ]
       }
     ]

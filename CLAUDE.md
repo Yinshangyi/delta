@@ -41,10 +41,23 @@ else.
   needs no port: an exported `Effect` in
   `core/use_cases/<feature>/<Name>{Query,UseCase}.ts` is enough.
 
+## The edit gates
+
+Four `PostToolUse` hooks run on every edit, in `tools/hooks/`: LintFix,
+AstGrepCheck, BoundaryCheck, FormatFix. The first three exit 2 on a finding,
+which hands it back while the context that produced it is still in the
+conversation.
+
+They are TypeScript, run by node directly through one bash shim. The shim
+sources `nix/devshell-path.sh` first, because Claude Code is usually started
+outside the dev shell and a hook that cannot find its tools skips itself in
+silence — which reads exactly like a clean edit. If you see
+`[devshell] … is missing`, run `direnv allow` once.
+
 ## The hexagon
 
-Enforced by `.dependency-cruiser.cjs`, and by a `PostToolUse` hook that runs it
-on every edit. If a rule fires, the import is wrong — not the rule.
+Enforced by `.dependency-cruiser.cjs`, and by the BoundaryCheck hook on every
+edit. If a rule fires, the import is wrong — not the rule.
 
 - `core/**` imports no adapter, no React, no reactivity primitive.
 - `primary_adapters/**` never imports `secondary_adapters/**`.
