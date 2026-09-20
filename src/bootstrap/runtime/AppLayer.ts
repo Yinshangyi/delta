@@ -17,6 +17,7 @@ import { DatabaseLive } from "@/bootstrap/persistence/Database"
 import { ensureDurableStorage } from "@/bootstrap/persistence/EnsureDurableStorage"
 import { MigrationsLive } from "@/bootstrap/persistence/Migrations"
 import { StorageDurabilityLive } from "@/bootstrap/persistence/StorageDurabilityLive"
+import { seamsLayer } from "@/bootstrap/seams/Seams"
 import { capitalAdaptersLayer } from "@/modules/capital/Dependencies"
 import { commitmentsAdaptersLayer } from "@/modules/commitments/Dependencies"
 import { householdAdaptersLayer } from "@/modules/household/Dependencies"
@@ -29,7 +30,10 @@ import type { Commitments } from "@/modules/commitments/core/ports/secondary/Com
 import type { DebtHistory } from "@/modules/commitments/core/ports/secondary/DebtHistory"
 import type { HouseholdConfiguration } from "@/modules/household/core/ports/secondary/HouseholdConfiguration"
 import type { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
+import type { CapitalSources } from "@/modules/trajectory/core/ports/secondary/CapitalSources"
+import type { CashFlowSources } from "@/modules/trajectory/core/ports/secondary/CashFlowSources"
 import type { Goals } from "@/modules/trajectory/core/ports/secondary/Goals"
+import type { OutstandingDebt } from "@/modules/trajectory/core/ports/secondary/OutstandingDebt"
 import type { Migrator, SqlClient, SqlError } from "effect/unstable/sql"
 
 export type PersistenceLayer = Layer.Layer<SqlClient.SqlClient, SqlError.SqlError>
@@ -44,6 +48,9 @@ export type AppServices =
   | typeof DebtHistory.Identifier
   | typeof Holdings.Identifier
   | typeof ValuationHistory.Identifier
+  | typeof CashFlowSources.Identifier
+  | typeof CapitalSources.Identifier
+  | typeof OutstandingDebt.Identifier
 
 /** Building the app can fail two ways: no database, or a migration that did not apply. */
 export type AppLayerError = SqlError.SqlError | Migrator.MigrationError
@@ -59,7 +66,14 @@ export const makeAppLayer = (
     commitmentsAdaptersLayer,
     capitalAdaptersLayer
   ).pipe(Layer.provide(persisted))
-  const services = Layer.mergeAll(persisted, durability, modules)
+
+  /**
+   * The seams sit above the modules and below trajectory's use cases: they
+   * adapt one module's query into another's port, which is composition and so
+   * belongs to the root (architecture.md).
+   */
+  const seams = seamsLayer.pipe(Layer.provideMerge(modules))
+  const services = Layer.mergeAll(persisted, durability, seams)
 
   /**
    * Asking for durable storage is a startup step, not a screen: it has to
