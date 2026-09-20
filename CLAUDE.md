@@ -139,6 +139,25 @@ body longer than about three lines.
   proved only tautologies; do not rebuild it here.
 - Assert through roles and accessible names, not DOM nodes or `container`.
 
+## Budgets
+
+A source file may be 200 lines, a function 40, a callback 4 deep. Components
+get 400 lines and no per-function budget, because a component is one function
+whose length is mostly markup. Tests are exempt: there is no number at which a
+self-sufficient arrange block is too long.
+
+The fix for a budget is always the same and always available — name it and lift
+it out. Raising the number is not the fix.
+
+## Gates, in order
+
+    edit hook   one file      lint · idioms · boundaries · format
+    pre-commit  staged files  idioms · lint · format-and-restage
+    pre-push    whole tree    everything, plus the tests
+    CI          whole tree    the same, on a machine nobody configured
+
+`lefthook install` runs on dev-shell entry, so the git hooks follow the file.
+
 ## Commands
 
 ```

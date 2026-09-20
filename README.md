@@ -62,7 +62,12 @@ pnpm lint             # oxlint
 pnpm format           # oxfmt, in place — also owns import order
 pnpm lint:boundaries  # dependency-cruiser — the hexagon
 pnpm ast-grep         # structural idioms
+pnpm ast-grep:test    # the rules themselves — every rule has a test case
 ```
+
+Two budgets are linted rather than reviewed: 200 lines a file, 40 a function
+(400 for a `.tsx`, whose length is mostly markup; off in tests). They are met by
+lifting code out, never by raising the number — see `tools/gates/`.
 
 `pnpm type-check` is the real gate. Effect v4 renamed enough that a stale idiom
 often fails at *import* time rather than in an assertion, so a green test run
@@ -74,8 +79,9 @@ that routes shell commands through `rtk` to trim their output — see
 them from a report into a loop. They need `.direnv/devshell-path`, written on
 shell entry, so run `direnv allow` once before relying on them.
 
-And all of them run again in CI, where they cannot be skipped:
-[`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+They also run as git hooks — the fast ones on commit, all of them on push
+([`lefthook.yml`](lefthook.yml), installed on shell entry) — and again in CI,
+where they cannot be skipped: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ## Layout
 
