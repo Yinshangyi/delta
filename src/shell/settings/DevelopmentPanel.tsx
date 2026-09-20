@@ -53,7 +53,17 @@ export function DevelopmentPanel() {
           onClick={() => {
             void runSeed(today()).then((exit) => {
               if (!Exit.isSuccess(exit)) return
-              setNote(exit.value === "seeded" ? "Seeded." : "Already has data — nothing was added.")
+              /*
+                A refusal that only states a fact leaves the reader stuck. The
+                guard cannot tell a household somebody set up from one the seed
+                made — both are just a household — so the message names the
+                button that does what they were reaching for.
+              */
+              setNote(
+                exit.value === "seeded"
+                  ? "Seeded."
+                  : "There is already a household here, so nothing was added. Use Reset to seed data to replace it."
+              )
               if (exit.value === "seeded") globalThis.location.reload()
             })
           }}
