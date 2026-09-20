@@ -38,4 +38,14 @@ describe("a switch", () => {
 
     expect(onChange).not.toHaveBeenCalled()
   })
+
+  it("keeps its label as the accessible name when it is hidden visually", () => {
+    render(<Switch checked onChange={() => {}} label="Dive watch counted" labelHidden />)
+
+    // The row beside it already shows the name, so repeating it visibly
+    // squeezed the figures — but a switch with no name at all is unusable
+    // with a screen reader.
+    expect(screen.getByRole("switch", { name: "Dive watch counted" })).toBeInTheDocument()
+    expect(screen.queryByText("Dive watch counted")).toHaveClass("sr-only")
+  })
 })

@@ -51,6 +51,7 @@ export function IncomeSourceRow({ summary, onToggle, busy }: IncomeSourceRowProp
 
       <div className="shrink-0">
         <Switch
+          labelHidden
           checked={summary.enabled}
           disabled={busy}
           label={`${summary.name} on`}

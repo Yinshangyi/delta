@@ -65,6 +65,7 @@ export function CommitmentRow({ summary, selected, onSelect, onToggle, busy }: C
 
         <div className="shrink-0 pt-0.5">
           <Switch
+            labelHidden
             checked={summary.enabled}
             disabled={busy}
             label={`${summary.name} on`}

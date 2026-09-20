@@ -87,7 +87,8 @@ describe("adding a bank account", () => {
     name: "Joint current account",
     institution: "A bank",
     openingBalanceEuros: 24_000,
-    balanceDate: TODAY
+    balanceDate: TODAY,
+    today: TODAY
   })
 
   it("records the opening balance as an actual valuation (CAP-03)", async () => {
@@ -97,6 +98,19 @@ describe("adding a bank account", () => {
 
     expect(snapshots.map((each) => each.basis)).toStrictEqual(["actual"])
     expect(snapshots.map((each) => Money.toEuros(each.amount))).toStrictEqual([24_000])
+  })
+
+  it("refuses an opening balance dated in the future, as recording one does", async () => {
+    const outcome = await withStubs([], [], (stubs) =>
+      Effect.result(addHolding({ ...draft(), balanceDate: "2027-01-31" })).pipe(
+        Effect.map((result) => ({ result, stored: stubs.holdings.inspect().holdings }))
+      )
+    )
+
+    // Accepted quietly, it produced a holding that read as having no value at
+    // all while its figure sat in the database.
+    expect(Result.isFailure(outcome.result)).toBe(true)
+    expect(outcome.stored).toStrictEqual([])
   })
 
   it("counts toward capital immediately, with no further step", async () => {
@@ -141,7 +155,8 @@ describe("adding a physical asset", () => {
     resaleValueEuros: 11_000,
     valuationDate: TODAY,
     acquisitionCostEuros: 9_000,
-    acquisitionDate: "2024-03-01"
+    acquisitionDate: "2024-03-01",
+    today: TODAY
   })
 
   it("records the resale value as an estimate (spec §70)", async () => {

@@ -12,6 +12,7 @@ export interface BankAccountDraft {
   /** Spec CAP-03: the opening balance is a valuation, recorded with the account. */
   readonly openingBalanceEuros: number
   readonly balanceDate: string
+  readonly today: string
 }
 
 export interface PhysicalAssetDraft {
@@ -24,6 +25,7 @@ export interface PhysicalAssetDraft {
   readonly valuationDate: string
   readonly acquisitionCostEuros: number | undefined
   readonly acquisitionDate: string | undefined
+  readonly today: string
 }
 
 export type HoldingDraft = BankAccountDraft | PhysicalAssetDraft

@@ -2,6 +2,12 @@ export interface SwitchProps {
   readonly checked: boolean
   readonly onChange: (checked: boolean) => void
   readonly label: string
+  /**
+   * Hides the label visually, keeping it for assistive technology. For a
+   * switch in a list row, where the row already names the thing: a visible
+   * label there repeats the name and squeezes the figures beside it.
+   */
+  readonly labelHidden?: boolean
   readonly disabled?: boolean
 }
 
@@ -13,9 +19,11 @@ export interface SwitchProps {
  * commitments and holdings where a row of saturated switches would shout over
  * the figures, which are the point of the screen.
  */
-export function Switch({ checked, onChange, label, disabled }: SwitchProps) {
+export function Switch({ checked, onChange, label, labelHidden, disabled }: SwitchProps) {
   return (
-    <label className="inline-flex cursor-pointer items-center gap-[18px]">
+    <label
+      className={`inline-flex cursor-pointer items-center ${labelHidden === true ? "" : "gap-[18px]"}`}
+    >
       <input
         type="checkbox"
         role="switch"
@@ -24,7 +32,11 @@ export function Switch({ checked, onChange, label, disabled }: SwitchProps) {
         onChange={(event) => onChange(event.currentTarget.checked)}
         className="peer sr-only"
       />
-      <span className="text-ink text-sm peer-disabled:opacity-50">{label}</span>
+      <span
+        className={labelHidden === true ? "sr-only" : "text-ink text-sm peer-disabled:opacity-50"}
+      >
+        {label}
+      </span>
       <span
         aria-hidden="true"
         className={`relative h-4 w-7 shrink-0 rounded-full transition-colors peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-disabled:opacity-50 ${

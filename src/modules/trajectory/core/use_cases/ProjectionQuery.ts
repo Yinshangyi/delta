@@ -15,11 +15,11 @@ import { DEFAULT_HORIZON_MONTHS, project } from "@/modules/trajectory/core/domai
 import { CapitalSources } from "@/modules/trajectory/core/ports/secondary/CapitalSources"
 import { CashFlowSources } from "@/modules/trajectory/core/ports/secondary/CashFlowSources"
 import { Goals } from "@/modules/trajectory/core/ports/secondary/Goals"
-import * as LocalDate from "@/shared/domain/LocalDate"
 import * as YearMonth from "@/shared/domain/YearMonth"
 
 import type { FinancialGoal } from "@/modules/trajectory/core/domain/FinancialGoal"
 import type { ProjectionResult } from "@/modules/trajectory/core/domain/ProjectionResult"
+import type * as LocalDate from "@/shared/domain/LocalDate"
 import type * as Money from "@/shared/domain/Money"
 import type { PersistenceError } from "@/shared/domain/PersistenceError"
 
@@ -31,6 +31,13 @@ export class Projection extends Data.Class<{
 
 export interface ProjectionRequest {
   readonly from: YearMonth.YearMonth
+  /**
+   * The date capital is read at. Named by the caller rather than derived from
+   * `from`, because deriving it put the projection and the capital screen on
+   * two different instants: the screen showed €0 while the projection counted
+   * €24,000 recorded later the same month.
+   */
+  readonly asOf: LocalDate.LocalDate
   readonly horizonMonths?: number
 }
 
@@ -55,7 +62,7 @@ export const projectionFrom = (
     const horizon = request.horizonMonths ?? DEFAULT_HORIZON_MONTHS
 
     const capital = yield* CapitalSources
-    const startingCapital = yield* capital.totalAt(LocalDate.lastDayOf(request.from))
+    const startingCapital = yield* capital.totalAt(request.asOf)
 
     const sources = yield* CashFlowSources
     const cashFlows = yield* sources.between(

@@ -14,6 +14,7 @@ import { Effect } from "effect"
 
 import { BalanceSnapshot } from "@/modules/capital/core/domain/BalanceSnapshot"
 import { BankAccount, basisOf, PhysicalAsset } from "@/modules/capital/core/domain/Holding"
+import { validate, type ValuationInTheFuture } from "@/modules/capital/core/domain/ValuationDate"
 import { Holdings } from "@/modules/capital/core/ports/secondary/Holdings"
 import { ValuationHistory } from "@/modules/capital/core/ports/secondary/ValuationHistory"
 import * as LocalDate from "@/shared/domain/LocalDate"
@@ -23,7 +24,7 @@ import type { Holding, HoldingId } from "@/modules/capital/core/domain/Holding"
 import type { HoldingDraft } from "@/modules/capital/core/use_cases/HoldingDrafts"
 import type { PersistenceError } from "@/shared/domain/PersistenceError"
 
-export type InvalidHolding = Money.InvalidMoney | LocalDate.InvalidLocalDate
+export type InvalidHolding = Money.InvalidMoney | LocalDate.InvalidLocalDate | ValuationInTheFuture
 
 const optionalEuros = (euros: number | undefined) =>
   euros === undefined
@@ -75,7 +76,14 @@ export const addHolding = (
   Effect.gen(function* () {
     const opening = openingOf(draft)
     const amount = yield* Effect.fromResult(Money.fromEuros(opening.euros))
-    const date = yield* Effect.fromResult(LocalDate.parse(opening.on))
+    // The same refusal as recording a value later (CAP-04): an opening balance
+    // dated in the future would leave the holding reading as valueless.
+    const date = yield* Effect.fromResult(
+      validate(
+        yield* Effect.fromResult(LocalDate.parse(opening.on)),
+        yield* Effect.fromResult(LocalDate.parse(draft.today))
+      )
+    )
 
     const holdings = yield* Holdings
     const holding = yield* holdingFrom(yield* holdings.nextId, draft)

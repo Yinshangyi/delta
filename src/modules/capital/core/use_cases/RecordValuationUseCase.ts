@@ -11,10 +11,11 @@
  * the person is standing; a use case that guessed would refuse valid dates in
  * one half of the world.
  */
-import { Data, Effect } from "effect"
+import { Effect } from "effect"
 
 import { BalanceSnapshot } from "@/modules/capital/core/domain/BalanceSnapshot"
 import { basisOf } from "@/modules/capital/core/domain/Holding"
+import { validate, type ValuationInTheFuture } from "@/modules/capital/core/domain/ValuationDate"
 import { ValuationHistory } from "@/modules/capital/core/ports/secondary/ValuationHistory"
 import * as LocalDate from "@/shared/domain/LocalDate"
 import * as Money from "@/shared/domain/Money"
@@ -25,12 +26,6 @@ import type {
 } from "@/modules/capital/core/domain/BalanceSnapshot"
 import type { Holding } from "@/modules/capital/core/domain/Holding"
 import type { PersistenceError } from "@/shared/domain/PersistenceError"
-
-/** CAP-04: a balance you have not had yet is a typo, not a forecast. */
-export class ValuationInTheFuture extends Data.TaggedError("ValuationInTheFuture")<{
-  readonly date: LocalDate.LocalDate
-  readonly today: LocalDate.LocalDate
-}> {}
 
 export interface ValuationDraft {
   /** The holding itself, because its kind decides the basis (spec §71). */
@@ -52,12 +47,12 @@ export const recordValuation = (
   draft: ValuationDraft
 ): Effect.Effect<Snapshot, RecordValuationError, typeof ValuationHistory.Identifier> =>
   Effect.gen(function* () {
-    const date = yield* Effect.fromResult(LocalDate.parse(draft.date))
-    const today = yield* Effect.fromResult(LocalDate.parse(draft.today))
-    if (LocalDate.isAfter(date, today)) {
-      return yield* Effect.fail(new ValuationInTheFuture({ date, today }))
-    }
-
+    const date = yield* Effect.fromResult(
+      validate(
+        yield* Effect.fromResult(LocalDate.parse(draft.date)),
+        yield* Effect.fromResult(LocalDate.parse(draft.today))
+      )
+    )
     const amount = yield* Effect.fromResult(Money.fromEuros(draft.amountEuros))
 
     const valuations = yield* ValuationHistory
