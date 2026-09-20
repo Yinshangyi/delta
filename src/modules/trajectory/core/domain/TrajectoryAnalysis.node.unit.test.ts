@@ -1,6 +1,7 @@
 import { Result } from "effect"
 import { describe, expect, it } from "vitest"
 
+import { outlookOver } from "@/modules/trajectory/core/domain/MonthlyOutlook"
 import { compare } from "@/modules/trajectory/core/domain/PlanVariance"
 import { project } from "@/modules/trajectory/core/domain/ProjectionEngine"
 import { averageMonthlyNet } from "@/modules/trajectory/core/domain/Shortfall"
@@ -187,5 +188,58 @@ describe("ahead of or behind plan", () => {
     expect(
       compare(euros(29_500), euros(28_000), ym("2028-10"), undefined).monthsMoved
     ).toBeUndefined()
+  })
+})
+
+describe("what a month usually looks like", () => {
+  it("reports the typical month, not an average flattened by a tax bill", () => {
+    const withTax = project({
+      cashFlows: [...monthly("2026-01", 12, 2_000), ...monthly("2026-09", 1, -12_000, "tax")],
+      startingCapital: Money.zero,
+      target: euros(500_000),
+      from: ym("2026-01")
+    })
+
+    const outlook = outlookOver(withTax, 12)
+
+    // Eleven months leave €2,000 and one leaves −€10,000. The average is €1,000,
+    // which is true of no month at all; the median is what most months look like.
+    expect(Money.toEuros(outlook.typicalNet)).toBe(2_000)
+    expect(Money.toEuros(outlook.averageNet)).toBe(1_000)
+  })
+
+  it("says so when the two disagree, rather than picking one silently", () => {
+    const withTax = project({
+      cashFlows: [...monthly("2026-01", 12, 2_000), ...monthly("2026-09", 1, -12_000, "tax")],
+      startingCapital: Money.zero,
+      target: euros(500_000),
+      from: ym("2026-01")
+    })
+
+    expect(outlookOver(withTax, 12).lumpy).toBe(true)
+  })
+
+  it("reports a steady household as not lumpy, the two figures agreeing", () => {
+    const outlook = outlookOver(steady(), 6)
+
+    expect(outlook.typicalNet).toBe(outlook.averageNet)
+    expect(outlook.lumpy).toBe(false)
+  })
+
+  it("separates income from commitments in the typical month", () => {
+    const household = project({
+      cashFlows: [...monthly("2026-01", 12, 3_000), ...monthly("2026-01", 12, -1_200, "rent")],
+      startingCapital: Money.zero,
+      target: euros(500_000),
+      from: ym("2026-01")
+    })
+
+    const outlook = outlookOver(household, 12)
+    expect(Money.toEuros(outlook.typicalIncome)).toBe(3_000)
+    expect(Money.toEuros(outlook.typicalCommitments)).toBe(-1_200)
+  })
+
+  it("reports the window it actually had, not the one it was asked for", () => {
+    expect(outlookOver(steady(), 24).windowMonths).toBe(6)
   })
 })

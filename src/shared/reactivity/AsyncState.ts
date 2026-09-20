@@ -62,3 +62,19 @@ export const resolveStream = <A, E>(result: AsyncResult.AsyncResult<A, E>): Asyn
     onDefect: (defect) => AsyncState.Defect(asError(defect)),
     onSuccess: (success) => AsyncState.Success(success.value)
   })
+
+/**
+ * The value where one has arrived, and nothing otherwise.
+ *
+ * For a screen assembled from several reads, where one of them being absent is
+ * not a reason for the whole screen to fail: a dashboard whose variance panel
+ * cannot be computed still answers the question it exists to answer, and the
+ * panel says so on its own.
+ */
+export const valueOrUndefined = <A, E>(result: AsyncResult.AsyncResult<A, E>): A | undefined =>
+  AsyncResult.matchWithError(result, {
+    onInitial: () => undefined,
+    onError: () => undefined,
+    onDefect: () => undefined,
+    onSuccess: (success) => success.value
+  })

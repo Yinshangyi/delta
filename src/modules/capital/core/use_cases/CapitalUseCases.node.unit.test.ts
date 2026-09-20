@@ -7,6 +7,7 @@ import { addHolding } from "@/modules/capital/core/use_cases/AddHoldingUseCase"
 import { capitalOverviewAt } from "@/modules/capital/core/use_cases/CapitalOverviewQuery"
 import { totalCapitalAt } from "@/modules/capital/core/use_cases/CapitalSourcesQuery"
 import { deleteHolding } from "@/modules/capital/core/use_cases/DeleteHoldingUseCase"
+import { recordManyValuations } from "@/modules/capital/core/use_cases/RecordManyValuationsUseCase"
 import { recordValuation } from "@/modules/capital/core/use_cases/RecordValuationUseCase"
 import { setHoldingIncluded } from "@/modules/capital/core/use_cases/SetHoldingIncludedUseCase"
 import { makeHoldingsStub } from "@/modules/capital/secondary_adapters/HoldingsStub"
@@ -398,5 +399,76 @@ describe("the capital overview", () => {
 
     expect(overview.accounts).toHaveLength(1)
     expect(overview.accounts.map((each) => each.valuation)).toStrictEqual([undefined])
+  })
+})
+
+describe("the monthly routine", () => {
+  const entries = (...amounts: ReadonlyArray<string>) => [
+    { holding: account(), amountEuros: amounts[0] ?? "" },
+    { holding: asset(), amountEuros: amounts[1] ?? "" }
+  ]
+
+  it("records several holdings in one pass (TRJ-05)", async () => {
+    const snapshots = await withStubs([account(), asset()], [], (stubs) =>
+      recordManyValuations({
+        entries: entries("26000", "10500"),
+        date: TODAY,
+        today: TODAY
+      }).pipe(Effect.map(() => stubs.valuations.inspect().snapshots))
+    )
+
+    expect(snapshots.map((each) => Money.toEuros(each.amount))).toStrictEqual([26_000, 10_500])
+  })
+
+  it("leaves a blank field alone rather than recording zero", async () => {
+    const snapshots = await withStubs([account(), asset()], [], (stubs) =>
+      recordManyValuations({
+        entries: entries("26000", ""),
+        date: TODAY,
+        today: TODAY
+      }).pipe(Effect.map(() => stubs.valuations.inspect().snapshots))
+    )
+
+    // A household checks two of four accounts in a month. Reading the empty
+    // fields as €0 would wipe out half their capital on a routine visit.
+    expect(snapshots).toHaveLength(1)
+    expect(snapshots.map((each) => each.holdingId)).toStrictEqual(["a1"])
+  })
+
+  it("records nothing at all when every field is blank", async () => {
+    const snapshots = await withStubs([account(), asset()], [], (stubs) =>
+      recordManyValuations({ entries: entries(), date: TODAY, today: TODAY }).pipe(
+        Effect.map(() => stubs.valuations.inspect().snapshots)
+      )
+    )
+
+    expect(snapshots).toStrictEqual([])
+  })
+
+  it("takes each holding's own basis, so an asset stays an estimate", async () => {
+    const snapshots = await withStubs([account(), asset()], [], (stubs) =>
+      recordManyValuations({
+        entries: entries("26000", "10500"),
+        date: TODAY,
+        today: TODAY
+      }).pipe(Effect.map(() => stubs.valuations.inspect().snapshots))
+    )
+
+    expect(snapshots.map((each) => each.basis)).toStrictEqual(["actual", "estimated"])
+  })
+
+  it("refuses the whole pass on a future date rather than recording some of it", async () => {
+    const outcome = await withStubs([account(), asset()], [], (stubs) =>
+      Effect.result(
+        recordManyValuations({
+          entries: entries("26000", "10500"),
+          date: "2027-01-31",
+          today: TODAY
+        })
+      ).pipe(Effect.map((result) => ({ result, stored: stubs.valuations.inspect().snapshots })))
+    )
+
+    expect(Result.isFailure(outcome.result)).toBe(true)
+    expect(outcome.stored).toStrictEqual([])
   })
 })

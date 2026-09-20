@@ -2,6 +2,7 @@ import { EmptyState } from "@/dsl/EmptyState"
 import { CapitalContainer } from "@/modules/capital/primary_adapters/react/CapitalContainer"
 import { CommitmentsContainer } from "@/modules/commitments/primary_adapters/react/CommitmentsContainer"
 import { WithHousehold } from "@/modules/household/primary_adapters/react/WithHousehold"
+import { DashboardContainer } from "@/modules/trajectory/primary_adapters/react/DashboardContainer"
 import { AppShell } from "@/shell/AppShell"
 import { titleOf } from "@/shell/routing/Section"
 import { useSection } from "@/shell/routing/useSection"
@@ -26,6 +27,14 @@ export function AppShellContainer() {
     return (
       <AppShell current={section}>
         <SettingsContainer />
+      </AppShell>
+    )
+  }
+
+  if (section === "dashboard") {
+    return (
+      <AppShell current={section}>
+        <WithHousehold>{() => <DashboardContainer />}</WithHousehold>
       </AppShell>
     )
   }
