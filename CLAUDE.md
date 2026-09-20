@@ -48,6 +48,11 @@ AstGrepCheck, BoundaryCheck, FormatFix. The first three exit 2 on a finding,
 which hands it back while the context that produced it is still in the
 conversation.
 
+A fifth, `RtkRewrite`, runs `PreToolUse` on Bash: it asks `rtk rewrite` whether
+a command has a cheaper equivalent and relays the answer, so `git status`
+becomes `rtk git status` and its output is trimmed before it reaches the model.
+Every rule lives in rtk; the hook decides nothing.
+
 They are TypeScript, run by node directly through one bash shim. The shim
 sources `nix/devshell-path.sh` first, because Claude Code is usually started
 outside the dev shell and a hook that cannot find its tools skips itself in

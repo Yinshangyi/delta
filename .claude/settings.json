@@ -1,10 +1,24 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh RtkRewrite"
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write|MultiEdit|NotebookEdit",
         "hooks": [
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh LintFix" },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh LintFix"
+          },
           {
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh AstGrepCheck"
@@ -13,7 +27,10 @@
             "type": "command",
             "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh BoundaryCheck"
           },
-          { "type": "command", "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh FormatFix" }
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/hook.sh FormatFix"
+          }
         ]
       }
     ]

@@ -68,7 +68,8 @@ pnpm ast-grep         # structural idioms
 often fails at *import* time rather than in an assertion, so a green test run
 alone proves less than it looks.
 
-All of the above also run per edited file as Claude Code hooks — see
+All of the above also run per edited file as Claude Code hooks, alongside one
+that routes shell commands through `rtk` to trim their output — see
 [`tools/hooks/`](tools/hooks/). Three of them exit 2 on a finding, which turns
 them from a report into a loop. They need `.direnv/devshell-path`, written on
 shell entry, so run `direnv allow` once before relying on them.

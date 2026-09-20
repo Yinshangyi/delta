@@ -12,3 +12,6 @@ result
 
 # Screenshots vitest captures when a browser test fails — regenerated per run.
 .vitest/
+
+# rtk's command history — local, and none of the repository's business.
+.claude/cache/
