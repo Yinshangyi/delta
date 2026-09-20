@@ -51,61 +51,41 @@ export const browserEnvironment: ThemeEnvironment = {
   }
 }
 
-export const makeThemeStore = (environment: ThemeEnvironment = browserEnvironment): ThemeStore => {
-  const listeners = new Set<() => void>()
-
-  const stored = (): ThemePreference => {
-    try {
-      const value = environment.storage?.getItem(STORAGE_KEY)
-      return isPreference(value) ? value : "system"
-      // Private browsing and blocked site data throw rather than return null,
-      // and there is one sane answer either way: follow the system.
-      // ast-grep-ignore: no-unbound-catch
-    } catch {
-      return "system"
-    }
+/** Read once at construction; see `current` below for why it is not read again. */
+const storedIn = (environment: ThemeEnvironment): ThemePreference => {
+  try {
+    const value = environment.storage?.getItem(STORAGE_KEY)
+    return isPreference(value) ? value : "system"
+    // Private browsing and blocked site data throw rather than return null,
+    // and there is one sane answer either way: follow the system.
+    // ast-grep-ignore: no-unbound-catch
+  } catch {
+    return "system"
   }
+}
 
-  /**
-   * Read once, then held in memory. Storage is where the choice persists, not
-   * where it lives: a refused write must still hold for this session, and
-   * `useSyncExternalStore` calls the snapshot on every render, which is no
-   * place for a storage hit.
-   */
-  let current: ThemePreference = stored()
+const resolved = (environment: ThemeEnvironment, preference: ThemePreference): Theme => {
+  if (preference !== "system") return preference
+  return environment.darkMedia?.matches === true ? "dark" : "light"
+}
 
-  const preference = (): ThemePreference => current
-
-  const theme = (): Theme => {
-    const chosen = preference()
-    if (chosen !== "system") return chosen
-    return environment.darkMedia?.matches === true ? "dark" : "light"
+const persist = (environment: ThemeEnvironment, preference: ThemePreference): void => {
+  try {
+    environment.storage?.setItem(STORAGE_KEY, preference)
+    // A refused write costs the choice on the next reload, nothing more.
+    // ast-grep-ignore: no-unbound-catch
+  } catch {
+    // Deliberately empty: the choice still holds for this session.
   }
+}
 
-  /** The only place the resolved theme reaches the outside world. */
-  const paint = (): void => {
-    environment.writeTheme(theme())
-  }
-
-  const announce = (): void => {
-    for (const listener of listeners) listener()
-  }
-
-  const set = (next: ThemePreference): void => {
-    current = next
-    try {
-      environment.storage?.setItem(STORAGE_KEY, next)
-      // A refused write costs the choice on the next reload, nothing more.
-      // ast-grep-ignore: no-unbound-catch
-    } catch {
-      // Deliberately empty: the choice still holds for this session.
-    }
-    paint()
-    announce()
-  }
-
-  /** Notifies on an explicit change, and on the system flipping under "system". */
-  const subscribe = (listener: () => void): (() => void) => {
+/**
+ * Notifies on an explicit change, and on the system flipping under "system" —
+ * where the theme must be repainted even though the preference did not move.
+ */
+const subscriber =
+  (environment: ThemeEnvironment, listeners: Set<() => void>, paint: () => void) =>
+  (listener: () => void): (() => void) => {
     listeners.add(listener)
     const onSystemChange = () => {
       paint()
@@ -119,7 +99,32 @@ export const makeThemeStore = (environment: ThemeEnvironment = browserEnvironmen
     }
   }
 
-  return { preference, theme, set, subscribe }
+export const makeThemeStore = (environment: ThemeEnvironment = browserEnvironment): ThemeStore => {
+  const listeners = new Set<() => void>()
+
+  /**
+   * Read once, then held in memory. Storage is where the choice persists, not
+   * where it lives: a refused write must still hold for this session, and
+   * `useSyncExternalStore` calls the snapshot on every render, which is no
+   * place for a storage hit.
+   */
+  let current: ThemePreference = storedIn(environment)
+
+  const preference = (): ThemePreference => current
+
+  const theme = (): Theme => resolved(environment, current)
+
+  /** The only place the resolved theme reaches the outside world. */
+  const paint = (): void => environment.writeTheme(theme())
+
+  const set = (next: ThemePreference): void => {
+    current = next
+    persist(environment, next)
+    paint()
+    for (const listener of listeners) listener()
+  }
+
+  return { preference, theme, set, subscribe: subscriber(environment, listeners, paint) }
 }
 
 /** The instance the application uses. Tests build their own. */

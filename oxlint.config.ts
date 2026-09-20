@@ -1,5 +1,14 @@
 import { defineConfig } from "oxlint"
 
+import { nestingBudget } from "./tools/gates/NestingBudget.ts"
+import {
+  componentScope,
+  componentSizeBudgets,
+  exemptFromSizeBudgets,
+  sizeBudgets,
+  sizeBudgetScope
+} from "./tools/gates/SizeBudgets.ts"
+
 /**
  * Hexagon boundaries are dependency-cruiser's job, not oxlint's — see
  * `.dependency-cruiser.cjs`. The `eslint-plugin-boundaries` gate was measured
@@ -30,6 +39,29 @@ export default defineConfig({
     ]
   },
   overrides: [
+    {
+      // Deliberately these rules and not `max-depth`: it counts nested BLOCK
+      // statements, and on Effect pipeline code — where the nesting is
+      // callbacks and expressions — it cannot fire.
+      files: [...sizeBudgetScope],
+      rules: { ...sizeBudgets, ...nestingBudget }
+    },
+    {
+      // A component is one function whose length is mostly markup, so the file
+      // budget is raised and the per-function one dropped.
+      files: [...componentScope],
+      rules: { ...componentSizeBudgets, "max-lines-per-function": "off" }
+    },
+    {
+      // Off rather than raised: there is no number at which a self-sufficient
+      // test arrange block is too long.
+      files: [...exemptFromSizeBudgets],
+      rules: {
+        "max-lines": "off",
+        "max-lines-per-function": "off",
+        "max-nested-callbacks": "off"
+      }
+    },
     {
       /**
        * A `Date` anywhere in the domain reintroduces the host timezone the
