@@ -21,6 +21,7 @@ import { seamsLayer } from "@/bootstrap/seams/Seams"
 import { capitalAdaptersLayer } from "@/modules/capital/Dependencies"
 import { commitmentsAdaptersLayer } from "@/modules/commitments/Dependencies"
 import { householdAdaptersLayer } from "@/modules/household/Dependencies"
+import { scenariosAdaptersLayer } from "@/modules/scenarios/Dependencies"
 import { trajectoryAdaptersLayer } from "@/modules/trajectory/Dependencies"
 
 import type { StorageDurability } from "@/bootstrap/persistence/StorageDurability"
@@ -30,6 +31,7 @@ import type { Commitments } from "@/modules/commitments/core/ports/secondary/Com
 import type { DebtHistory } from "@/modules/commitments/core/ports/secondary/DebtHistory"
 import type { HouseholdConfiguration } from "@/modules/household/core/ports/secondary/HouseholdConfiguration"
 import type { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
+import type { Scenarios } from "@/modules/scenarios/core/ports/secondary/Scenarios"
 import type { CapitalSources } from "@/modules/trajectory/core/ports/secondary/CapitalSources"
 import type { CashFlowSources } from "@/modules/trajectory/core/ports/secondary/CashFlowSources"
 import type { Goals } from "@/modules/trajectory/core/ports/secondary/Goals"
@@ -51,6 +53,7 @@ export type AppServices =
   | typeof CashFlowSources.Identifier
   | typeof CapitalSources.Identifier
   | typeof OutstandingDebt.Identifier
+  | typeof Scenarios.Identifier
 
 /** Building the app can fail two ways: no database, or a migration that did not apply. */
 export type AppLayerError = SqlError.SqlError | Migrator.MigrationError
@@ -64,7 +67,8 @@ export const makeAppLayer = (
     householdAdaptersLayer,
     trajectoryAdaptersLayer,
     commitmentsAdaptersLayer,
-    capitalAdaptersLayer
+    capitalAdaptersLayer,
+    scenariosAdaptersLayer
   ).pipe(Layer.provide(persisted))
 
   /**

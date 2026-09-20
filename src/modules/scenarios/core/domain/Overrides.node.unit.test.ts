@@ -36,6 +36,8 @@ import * as LocalDate from "@/shared/domain/LocalDate"
 import * as Money from "@/shared/domain/Money"
 import * as PayoutRatio from "@/shared/domain/PayoutRatio"
 
+import type { ScenarioOverride } from "@/modules/scenarios/core/domain/Scenario"
+
 const euros = (value: number) => Result.getOrThrow(Money.fromEuros(value))
 const date = (iso: string) => Result.getOrThrow(LocalDate.parse(iso))
 const days = (count: number) => Result.getOrThrow(BillableDays.fromNumber(count))
@@ -281,7 +283,7 @@ describe("overriding holdings", () => {
 })
 
 describe("a scenario pointing at something deleted", () => {
-  const scenario = (overrides: Parameters<typeof Scenario>[0]["overrides"]) =>
+  const scenario = (overrides: ReadonlyArray<ScenarioOverride>) =>
     new Scenario({ id: scenarioId("sc1"), householdId: home, name: "What if", overrides })
 
   const live = {
