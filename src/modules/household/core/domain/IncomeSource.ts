@@ -6,12 +6,13 @@
  * a third variant (rental, dividends) is a new member here plus one translator,
  * with no change to the engine.
  */
-import { Brand, Data } from "effect"
+import { Brand, Data, Result } from "effect"
+
+import * as LocalDate from "@/shared/domain/LocalDate"
 
 import type { PersonId } from "@/modules/household/core/domain/Household"
 import type * as BillableDays from "@/shared/domain/BillableDays"
 import type * as DailyRate from "@/shared/domain/DailyRate"
-import type * as LocalDate from "@/shared/domain/LocalDate"
 import type * as Money from "@/shared/domain/Money"
 import type * as PayoutRatio from "@/shared/domain/PayoutRatio"
 import type * as YearMonth from "@/shared/domain/YearMonth"
@@ -25,6 +26,24 @@ export class ActivePeriod extends Data.Class<{
   readonly startDate: LocalDate.LocalDate
   readonly endDate: LocalDate.LocalDate | undefined
 }> {}
+
+export class InvalidPeriod extends Data.TaggedError("InvalidPeriod")<{
+  readonly startDate: LocalDate.LocalDate
+  readonly endDate: LocalDate.LocalDate
+}> {}
+
+/**
+ * A period that ends before it starts produces no cash flows at all, which in
+ * the UI is indistinguishable from a source that is merely off. Refused here
+ * so the mistake is reported where it was made.
+ */
+export const activePeriod = (
+  startDate: LocalDate.LocalDate,
+  endDate: LocalDate.LocalDate | undefined
+): Result.Result<ActivePeriod, InvalidPeriod> =>
+  endDate !== undefined && LocalDate.isBefore(endDate, startDate)
+    ? Result.fail(new InvalidPeriod({ startDate, endDate }))
+    : Result.succeed(new ActivePeriod({ startDate, endDate }))
 
 /**
  * A default for every month, with explicit overrides (spec §11). Zero is a
@@ -42,6 +61,23 @@ export const daysIn = (
 
 export const isOverridden = (plan: BillableDaysPlan, month: YearMonth.YearMonth): boolean =>
   plan.overrides.has(month)
+
+export const withOverride = (
+  plan: BillableDaysPlan,
+  month: YearMonth.YearMonth,
+  days: BillableDays.BillableDays
+): BillableDaysPlan =>
+  new BillableDaysPlan({ ...plan, overrides: new Map(plan.overrides).set(month, days) })
+
+/** Clearing is not "override with the default": the month goes back to following it. */
+export const withoutOverride = (
+  plan: BillableDaysPlan,
+  month: YearMonth.YearMonth
+): BillableDaysPlan => {
+  const overrides = new Map(plan.overrides)
+  overrides.delete(month)
+  return new BillableDaysPlan({ ...plan, overrides })
+}
 
 export class FreelanceIncome extends Data.TaggedClass("FreelanceIncome")<{
   readonly id: IncomeSourceId

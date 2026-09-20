@@ -11,6 +11,7 @@
 import { Effect, Layer, Match } from "effect"
 import { SqlClient } from "effect/unstable/sql"
 
+import { incomeSourceId } from "@/modules/household/core/domain/IncomeSource"
 import {
   IncomeSources,
   type IncomeSourcesShape
@@ -127,6 +128,7 @@ export const IncomeSourcesLive: Layer.Layer<
   Effect.gen(function* () {
     const sql = yield* SqlClient.SqlClient
     const shape: IncomeSourcesShape = {
+      nextId: Effect.sync(() => incomeSourceId(crypto.randomUUID())),
       all: select(sql)(undefined),
       forPerson: (person) => select(sql)(person),
       save: saveSource(sql),

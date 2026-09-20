@@ -42,6 +42,12 @@ export class Household extends Data.Class<{
   readonly members: ReadonlyArray<Person>
 }> {}
 
+/**
+ * Read before first-run setup has happened. Separate from a persistence
+ * failure: nothing went wrong, there is simply nothing there yet (spec §65).
+ */
+export class NoHousehold extends Data.TaggedError("NoHousehold")<{}> {}
+
 export class CannotRemoveLastPerson extends Data.TaggedError("CannotRemoveLastPerson")<{
   readonly householdId: HouseholdId
 }> {}
