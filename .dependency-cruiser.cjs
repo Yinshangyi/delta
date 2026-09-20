@@ -58,7 +58,13 @@ module.exports = {
         "a use case that knows its adapter cannot be tested without it, and cannot be " +
         "re-pointed at a different one.",
       severity: "error",
-      from: { path: "^src/modules/[^/]+/core/" },
+      /*
+       * Tests are exempt, and only tests. A use-case test has to be handed a
+       * test double of its port, the doubles are co-located with the adapter
+       * they stand in for (architecture.md — Testing), and a test is not part
+       * of the shipped graph. The rule still binds every module that is.
+       */
+      from: { path: "^src/modules/[^/]+/core/", pathNot: "\\.test\\.tsx?$" },
       to: { path: "^src/modules/[^/]+/(primary_adapters|secondary_adapters)/" }
     },
     {

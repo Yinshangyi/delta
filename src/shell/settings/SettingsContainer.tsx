@@ -2,6 +2,7 @@ import { useAtomValue } from "@effect/atom-react"
 import { Match } from "effect"
 
 import { FailureState } from "@/dsl/FailureState"
+import { HouseholdContainer } from "@/modules/household/primary_adapters/react/HouseholdContainer"
 import { resolveStream } from "@/shared/reactivity/AsyncState"
 import { storageAtom } from "@/shell/settings/SettingsAtoms"
 import { SettingsScreen, SettingsSection } from "@/shell/settings/SettingsScreen"
@@ -15,10 +16,9 @@ import { ThemeControl } from "@/shell/ThemeControl"
  * AsyncState variants is handled here, so no screen below this line has to know
  * that the data arrives asynchronously.
  *
- * Three sections are missing rather than stubbed — household and members, the
- * goal, and export — because the work they present belongs to HH-04, TRJ-01 and
- * DAT-01. A section that cannot do anything is worse than one that is not
- * there.
+ * Two sections are still missing rather than stubbed — the goal and export —
+ * because the work they present belongs to TRJ-01 and DAT-01. A section that
+ * cannot do anything is worse than one that is not there.
  */
 export function SettingsContainer() {
   const { preference, setPreference } = useTheme()
@@ -31,6 +31,13 @@ export function SettingsContainer() {
         description={SETTINGS_COPY.appearance.description}
       >
         <ThemeControl preference={preference} onChange={setPreference} />
+      </SettingsSection>
+
+      <SettingsSection
+        title={SETTINGS_COPY.household.title}
+        description={SETTINGS_COPY.household.description}
+      >
+        <HouseholdContainer />
       </SettingsSection>
 
       <SettingsSection

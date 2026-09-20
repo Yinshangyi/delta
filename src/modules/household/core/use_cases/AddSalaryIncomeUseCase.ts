@@ -10,10 +10,11 @@ import { Effect } from "effect"
 
 import * as IncomeSource from "@/modules/household/core/domain/IncomeSource"
 import { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
+import { periodFrom } from "@/modules/household/core/use_cases/PeriodFrom"
+import * as LocalDate from "@/shared/domain/LocalDate"
 import * as Money from "@/shared/domain/Money"
 
 import type { PersonId } from "@/modules/household/core/domain/Household"
-import type * as LocalDate from "@/shared/domain/LocalDate"
 import type { PersistenceError } from "@/shared/domain/PersistenceError"
 
 export interface SalaryIncomeDraft {
@@ -22,11 +23,12 @@ export interface SalaryIncomeDraft {
   readonly monthlyNetBeforeTaxEuros: number
   readonly monthlyIncomeTaxEuros: number
   readonly annualGrossEuros: number | undefined
-  readonly startDate: LocalDate.LocalDate
-  readonly endDate: LocalDate.LocalDate | undefined
+  readonly startDate: string
+  readonly endDate: string | undefined
 }
 
 export type AddSalaryIncomeError =
+  | LocalDate.InvalidLocalDate
   | Money.InvalidMoney
   | IncomeSource.InvalidPeriod
   | PersistenceError
@@ -47,9 +49,7 @@ export const addSalaryIncome = (
     const net = yield* Effect.fromResult(Money.fromEuros(draft.monthlyNetBeforeTaxEuros))
     const tax = yield* Effect.fromResult(Money.fromEuros(draft.monthlyIncomeTaxEuros))
     const annualGross = yield* optionalEuros(draft.annualGrossEuros)
-    const period = yield* Effect.fromResult(
-      IncomeSource.activePeriod(draft.startDate, draft.endDate)
-    )
+    const period = yield* periodFrom(draft.startDate, draft.endDate)
 
     const sources = yield* IncomeSources
     const source = new IncomeSource.SalaryIncome({

@@ -12,9 +12,9 @@ import { Effect } from "effect"
 import * as IncomeSource from "@/modules/household/core/domain/IncomeSource"
 import { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
 import * as BillableDays from "@/shared/domain/BillableDays"
+import * as YearMonth from "@/shared/domain/YearMonth"
 
 import type { PersistenceError } from "@/shared/domain/PersistenceError"
-import type * as YearMonth from "@/shared/domain/YearMonth"
 
 const planWith = (
   source: IncomeSource.FreelanceIncome,
@@ -29,15 +29,16 @@ const planWith = (
 
 export const setBillableDaysOverride = (
   source: IncomeSource.FreelanceIncome,
-  month: YearMonth.YearMonth,
+  month: string,
   days: number | undefined
 ): Effect.Effect<
   IncomeSource.FreelanceIncome,
-  BillableDays.InvalidBillableDays | PersistenceError,
+  BillableDays.InvalidBillableDays | YearMonth.InvalidYearMonth | PersistenceError,
   typeof IncomeSources.Identifier
 > =>
   Effect.gen(function* () {
-    const billableDays = yield* planWith(source, month, days)
+    const parsed = yield* Effect.fromResult(YearMonth.parse(month))
+    const billableDays = yield* planWith(source, parsed, days)
     const updated = new IncomeSource.FreelanceIncome({ ...source, billableDays })
     const sources = yield* IncomeSources
     yield* sources.save(updated)

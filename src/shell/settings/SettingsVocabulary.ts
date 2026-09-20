@@ -1,5 +1,9 @@
 /** Copy as data (architecture.md — React), so it is reviewable in one place. */
 export const SETTINGS_COPY = {
+  household: {
+    title: "Household",
+    description: "Who is in it, what each of them earns, and what it is called."
+  },
   appearance: {
     title: "Appearance",
     description: "Follow the system, or pick a theme for this device."

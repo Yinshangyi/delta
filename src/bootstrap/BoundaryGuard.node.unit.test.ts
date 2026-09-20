@@ -51,6 +51,17 @@ describe("the hexagon is enforced, not merely documented", () => {
     expect(output).toContain("core-no-adapters")
   })
 
+  it("lets a use-case test take the co-located stub of its port", async () => {
+    const { code } = await cruise({
+      "src/modules/demo/core/use_cases/Good.node.unit.test.ts": `import { stub } from "@/modules/demo/secondary_adapters/ThingStub"
+export const used = stub
+`,
+      "src/modules/demo/secondary_adapters/ThingStub.ts": `export const stub = 1
+`
+    })
+    expect(code).toBe(0)
+  })
+
   it("rejects React inside core", async () => {
     const { code, output } = await cruise({
       "src/modules/demo/core/domain/Bad.ts": `import { useState } from "react"\nexport const bad = useState\n`

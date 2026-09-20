@@ -2,6 +2,8 @@
  * Dates as text. Two shapes, deliberately different, because they answer
  * different questions: a target date is a month, a snapshot is a day.
  */
+import { Result } from "effect"
+
 import * as LocalDate from "@/shared/domain/LocalDate"
 import * as YearMonth from "@/shared/domain/YearMonth"
 import { LOCALE } from "@/shared/presentation/Locale"
@@ -39,3 +41,12 @@ export const month = (value: YearMonth.YearMonth): string =>
 /** `31 Oct 2026` — snapshots and scheduled payments. */
 export const day = (value: LocalDate.LocalDate): string =>
   dayFormat.format(utc(LocalDate.year(value), LocalDate.month(value), LocalDate.day(value)))
+
+/**
+ * The same, for a month that came straight out of an `<input type="month">`
+ * and has not been validated yet. An unparseable value is shown as typed: the
+ * error belongs to the save, and a label that silently blanked would hide
+ * which row it was about.
+ */
+export const monthIso = (value: string): string =>
+  Result.match(YearMonth.parse(value), { onFailure: () => value, onSuccess: month })

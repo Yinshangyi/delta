@@ -109,6 +109,20 @@ describe("income use cases", () => {
     expect(Result.isFailure(outcome)).toBe(true)
   })
 
+  it("refuses a start date the date picker could not have produced", async () => {
+    const outcome = await withStub([], () =>
+      Effect.result(addFreelanceIncome({ ...freelanceDraft(), startDate: "2026-13-01" }))
+    )
+
+    expect(Result.isFailure(outcome)).toBe(true)
+  })
+
+  it("reads a cleared end date as ongoing rather than as a bad date", async () => {
+    const saved = await withStub([], () => addSalaryIncome({ ...salaryDraft(), endDate: "" }))
+
+    expect(saved.period.endDate).toBeUndefined()
+  })
+
   it("keeps annual gross out of the arithmetic, storing it as it was given", async () => {
     const saved = await withStub([], () => addSalaryIncome(salaryDraft()))
 

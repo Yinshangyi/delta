@@ -10,14 +10,15 @@ import { Effect } from "effect"
 
 import * as IncomeSource from "@/modules/household/core/domain/IncomeSource"
 import { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
+import { periodFrom } from "@/modules/household/core/use_cases/PeriodFrom"
 import * as BillableDays from "@/shared/domain/BillableDays"
 import * as DailyRate from "@/shared/domain/DailyRate"
+import * as LocalDate from "@/shared/domain/LocalDate"
 import * as PayoutRatio from "@/shared/domain/PayoutRatio"
+import * as YearMonth from "@/shared/domain/YearMonth"
 
 import type { PersonId } from "@/modules/household/core/domain/Household"
-import type * as LocalDate from "@/shared/domain/LocalDate"
 import type { PersistenceError } from "@/shared/domain/PersistenceError"
-import type * as YearMonth from "@/shared/domain/YearMonth"
 
 export interface FreelanceIncomeDraft {
   readonly personId: PersonId
@@ -25,12 +26,15 @@ export interface FreelanceIncomeDraft {
   readonly dailyRateEuros: number
   readonly estimatedPayoutPercent: number
   readonly standardBillableDays: number
-  readonly overrides: ReadonlyMap<YearMonth.YearMonth, number>
-  readonly startDate: LocalDate.LocalDate
-  readonly endDate: LocalDate.LocalDate | undefined
+  /** Keyed by ISO month, as an `<input type="month">` produces it. */
+  readonly overrides: ReadonlyMap<string, number>
+  readonly startDate: string
+  readonly endDate: string | undefined
 }
 
 export type AddFreelanceIncomeError =
+  | LocalDate.InvalidLocalDate
+  | YearMonth.InvalidYearMonth
   | DailyRate.InvalidDailyRate
   | PayoutRatio.InvalidPayoutRatio
   | BillableDays.InvalidBillableDays
@@ -39,12 +43,18 @@ export type AddFreelanceIncomeError =
 
 const planFrom = (
   standard: number,
-  overrides: ReadonlyMap<YearMonth.YearMonth, number>
-): Effect.Effect<IncomeSource.BillableDaysPlan, BillableDays.InvalidBillableDays> =>
+  overrides: ReadonlyMap<string, number>
+): Effect.Effect<
+  IncomeSource.BillableDaysPlan,
+  BillableDays.InvalidBillableDays | YearMonth.InvalidYearMonth
+> =>
   Effect.gen(function* () {
     const validated = new Map<YearMonth.YearMonth, BillableDays.BillableDays>()
     for (const [month, days] of overrides) {
-      validated.set(month, yield* Effect.fromResult(BillableDays.fromNumber(days)))
+      validated.set(
+        yield* Effect.fromResult(YearMonth.parse(month)),
+        yield* Effect.fromResult(BillableDays.fromNumber(days))
+      )
     }
     return new IncomeSource.BillableDaysPlan({
       standard: yield* Effect.fromResult(BillableDays.fromNumber(standard)),
@@ -63,9 +73,7 @@ export const addFreelanceIncome = (
     const dailyRate = yield* Effect.fromResult(DailyRate.fromEuros(draft.dailyRateEuros))
     const ratio = yield* Effect.fromResult(PayoutRatio.fromPercent(draft.estimatedPayoutPercent))
     const billableDays = yield* planFrom(draft.standardBillableDays, draft.overrides)
-    const period = yield* Effect.fromResult(
-      IncomeSource.activePeriod(draft.startDate, draft.endDate)
-    )
+    const period = yield* periodFrom(draft.startDate, draft.endDate)
 
     const sources = yield* IncomeSources
     const source = new IncomeSource.FreelanceIncome({
