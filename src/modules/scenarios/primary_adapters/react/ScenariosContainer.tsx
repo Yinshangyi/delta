@@ -125,9 +125,6 @@ function Scenarios({ household, overview, baseline }: ScenariosProps) {
     if (editing !== undefined) runCost(editing.overrides)
   }, [editing, runCost])
 
-  const choosable = (ids: ReadonlyArray<string>) =>
-    ids.map((id) => ({ id, name: overview.names.get(id) ?? id }))
-
   const withOverride = (scenario: Scenario, override: ScenarioOverride) =>
     new Scenario({ ...scenario, overrides: [...scenario.overrides, override] })
 
@@ -177,9 +174,10 @@ function Scenarios({ household, overview, baseline }: ScenariosProps) {
           changes={editing.overrides.map((override) => summarise(override, nameOf))}
           broken={brokenOf(editing)}
           cost={costValue}
-          incomeSources={choosable(overview.live.incomeSources)}
-          commitments={choosable(overview.live.commitments)}
-          holdings={choosable(overview.live.holdings)}
+          freelance={overview.choices.freelance}
+          salaried={overview.choices.salaried}
+          commitments={overview.choices.commitments}
+          holdings={overview.choices.holdings}
           busy={busy}
           onAdd={(draft) => {
             const override = overrideFrom(crypto.randomUUID(), draft)

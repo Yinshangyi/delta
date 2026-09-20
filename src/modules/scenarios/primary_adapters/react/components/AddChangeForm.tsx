@@ -32,7 +32,10 @@ export const emptyChangeDraft: ChangeDraft = {
 }
 
 export interface AddChangeFormProps {
-  readonly incomeSources: ReadonlyArray<Choosable>
+  /** Freelance and salaried apart: a change offered against the wrong kind
+   * would produce an override that silently does nothing. */
+  readonly freelance: ReadonlyArray<Choosable>
+  readonly salaried: ReadonlyArray<Choosable>
   readonly commitments: ReadonlyArray<Choosable>
   readonly holdings: ReadonlyArray<Choosable>
   readonly onAdd: (draft: ChangeDraft) => void
@@ -52,8 +55,9 @@ const choicesFor = (
     case "ChangeDailyRate":
     case "ChangeBillableDays":
     case "ChangePayoutRatio":
+      return props.freelance
     case "ChangeIncome":
-      return props.incomeSources
+      return props.salaried
     case "DisableCommitment":
       return props.commitments
     case "ExcludeHolding":
@@ -126,7 +130,11 @@ export function AddChangeForm(props: AddChangeFormProps) {
           )}
         </Field>
 
-        {choices === undefined ? null : (
+        {choices !== undefined && choices.length === 0 ? (
+          <p className="text-muted self-end pb-2 text-xs">Nothing of that kind to change yet.</p>
+        ) : null}
+
+        {choices === undefined || choices.length === 0 ? null : (
           <Field label="Which">
             {(ids) => (
               <Select

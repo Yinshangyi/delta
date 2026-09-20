@@ -22,7 +22,8 @@ export interface ScenarioBuilderProps {
   readonly changes: ReadonlyArray<ChangeSummary>
   readonly broken: ReadonlyArray<BrokenReference>
   readonly cost: TimeCost | undefined
-  readonly incomeSources: ReadonlyArray<Choosable>
+  readonly freelance: ReadonlyArray<Choosable>
+  readonly salaried: ReadonlyArray<Choosable>
   readonly commitments: ReadonlyArray<Choosable>
   readonly holdings: ReadonlyArray<Choosable>
   readonly onAdd: (draft: ChangeDraft) => void
@@ -79,7 +80,8 @@ export function ScenarioBuilder(props: ScenarioBuilderProps) {
       </div>
 
       <AddChangeForm
-        incomeSources={props.incomeSources}
+        freelance={props.freelance}
+        salaried={props.salaried}
         commitments={props.commitments}
         holdings={props.holdings}
         onAdd={props.onAdd}
