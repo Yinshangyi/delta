@@ -47,7 +47,11 @@ export function BillableDaysEditor({
         ))}
       </ul>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <p className="text-muted text-xs">
+        {`Default is ${standard} days a month. Zero is a real answer, not a missing one.`}
+      </p>
+
+      <div className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]">
         <Field label="Month">
           {(ids) => (
             <TextInput
@@ -58,7 +62,7 @@ export function BillableDaysEditor({
             />
           )}
         </Field>
-        <Field label="Days" hint={`Default is ${standard}. Zero is a real answer.`}>
+        <Field label="Days">
           {(ids) => (
             <TextInput
               {...ids}

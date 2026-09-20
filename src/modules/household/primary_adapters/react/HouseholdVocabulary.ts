@@ -74,8 +74,6 @@ export const HOUSEHOLD_COPY = {
     submit: "Create household"
   },
   members: {
-    title: "Household and members",
-    description: "Who is in the household, and what each of them earns.",
     householdNameLabel: "Household name",
     rename: "Rename",
     addLabel: "Add someone",

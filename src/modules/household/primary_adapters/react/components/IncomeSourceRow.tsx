@@ -28,8 +28,18 @@ export function IncomeSourceRow({ summary, onToggle, busy }: IncomeSourceRowProp
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-ink truncate text-sm font-medium">{summary.name}</span>
           <span className="text-muted text-xs">{summary.kind}</span>
-          {summary.estimate ? <Badge kind="estimated">estimated</Badge> : null}
-          {summary.enabled ? null : <Badge kind="unchanged">{copy.disabled}</Badge>}
+          {summary.estimate ? <Badge kind="estimated" /> : null}
+          {/*
+            Not a Badge: the kinds are the actual/forecast family, and the
+            nearest one ("no change") means a target date that did not move.
+            Off is a different distinction and borrowing that word for it would
+            make both of them vaguer.
+          */}
+          {summary.enabled ? null : (
+            <span className="border-line text-muted rounded border border-dashed px-1.5 py-0.5 text-xs font-medium">
+              {copy.disabled}
+            </span>
+          )}
         </div>
 
         <p className="text-ink text-sm">{summary.headline}</p>

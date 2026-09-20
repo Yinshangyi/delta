@@ -13,7 +13,13 @@ import { SalaryFields } from "@/modules/household/primary_adapters/react/compone
 import { HOUSEHOLD_COPY } from "@/modules/household/primary_adapters/react/HouseholdVocabulary"
 
 export interface AddIncomeFormProps {
-  readonly onSubmit: (draft: IncomeDraft) => void
+  /**
+   * Answers whether the draft was saved. The form cannot tell from its own
+   * state — clearing on submit would throw away a rejected draft and leave the
+   * person retyping it, and staying open on success reads as nothing having
+   * happened.
+   */
+  readonly onSubmit: (draft: IncomeDraft) => Promise<boolean>
   readonly busy: boolean
   readonly error: string | undefined
 }
@@ -38,7 +44,11 @@ export function AddIncomeForm({ onSubmit, busy, error }: AddIncomeFormProps) {
       className="border-line mt-2 flex flex-col gap-4 border-t pt-4"
       onSubmit={(event) => {
         event.preventDefault()
-        onSubmit(draft)
+        void onSubmit(draft).then((saved) => {
+          if (!saved) return
+          setDraft(emptyIncomeDraft)
+          setOpen(false)
+        })
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">

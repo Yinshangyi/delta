@@ -1,7 +1,6 @@
 import { AddPersonForm } from "@/modules/household/primary_adapters/react/components/AddPersonForm"
 import { HouseholdNameForm } from "@/modules/household/primary_adapters/react/components/HouseholdNameForm"
 import { MemberCard } from "@/modules/household/primary_adapters/react/components/MemberCard"
-import { HOUSEHOLD_COPY } from "@/modules/household/primary_adapters/react/HouseholdVocabulary"
 
 import type { PersonId } from "@/modules/household/core/domain/Household"
 import type { IncomeSourceId } from "@/modules/household/core/domain/IncomeSource"
@@ -20,7 +19,13 @@ export interface MembersPanelProps {
   readonly addPersonError: string | undefined
 }
 
-/** The whole of spec §39: who is here, what they earn, and how to change it. */
+/**
+ * The whole of spec §39: who is here, what they earn, and how to change it.
+ *
+ * No heading of its own: it is rendered inside a titled Settings section, and a
+ * panel that titled itself again would put two headings on one box and break
+ * the document's heading order for anyone navigating by it.
+ */
 export function MembersPanel({
   overview,
   onRename,
@@ -32,15 +37,8 @@ export function MembersPanel({
   renameError,
   addPersonError
 }: MembersPanelProps) {
-  const copy = HOUSEHOLD_COPY.members
-
   return (
     <section className="flex flex-col gap-6">
-      <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-semibold tracking-tight">{copy.title}</h1>
-        <p className="text-muted text-sm">{copy.description}</p>
-      </header>
-
       <HouseholdNameForm
         current={overview.household.name}
         onRename={onRename}

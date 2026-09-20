@@ -1,5 +1,5 @@
 import { useAtomValue } from "@effect/atom-react"
-import { Match, Option } from "effect"
+import { Exit, Match, Option } from "effect"
 import { useState } from "react"
 
 import { FailureState } from "@/dsl/FailureState"
@@ -74,12 +74,10 @@ function HouseholdScreen({ overview }: HouseholdScreenProps) {
     isBusy(mutation.state)
   )
 
-  const submitIncome = (person: PersonId, draft: IncomeDraft) => {
-    if (draft.kind === "freelance") {
-      void freelance.run(freelanceDraftFor(person, draft))
-    } else {
-      void salary.run(salaryDraftFor(person, draft))
-    }
+  const submitIncome = async (person: PersonId, draft: IncomeDraft): Promise<boolean> => {
+    return draft.kind === "freelance"
+      ? Exit.isSuccess(await freelance.run(freelanceDraftFor(person, draft)))
+      : Exit.isSuccess(await salary.run(salaryDraftFor(person, draft)))
   }
 
   return (
@@ -111,7 +109,12 @@ function HouseholdScreen({ overview }: HouseholdScreenProps) {
         onCancel={() => setPending(undefined)}
         onConfirm={() => {
           if (pending === undefined) return
-          void remove.run(pending.id).then(() => setPending(undefined))
+          // Closing regardless would throw away the refusal: removing the last
+          // person is refused with a reason (spec §40), and the dialog is
+          // where that reason is read.
+          void remove.run(pending.id).then((exit) => {
+            if (Exit.isSuccess(exit)) setPending(undefined)
+          })
         }}
       />
     </>
