@@ -17,10 +17,13 @@ import { DatabaseLive } from "@/bootstrap/persistence/Database"
 import { ensureDurableStorage } from "@/bootstrap/persistence/EnsureDurableStorage"
 import { MigrationsLive } from "@/bootstrap/persistence/Migrations"
 import { StorageDurabilityLive } from "@/bootstrap/persistence/StorageDurabilityLive"
+import { commitmentsAdaptersLayer } from "@/modules/commitments/Dependencies"
 import { householdAdaptersLayer } from "@/modules/household/Dependencies"
 import { trajectoryAdaptersLayer } from "@/modules/trajectory/Dependencies"
 
 import type { StorageDurability } from "@/bootstrap/persistence/StorageDurability"
+import type { Commitments } from "@/modules/commitments/core/ports/secondary/Commitments"
+import type { DebtHistory } from "@/modules/commitments/core/ports/secondary/DebtHistory"
 import type { HouseholdConfiguration } from "@/modules/household/core/ports/secondary/HouseholdConfiguration"
 import type { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
 import type { Goals } from "@/modules/trajectory/core/ports/secondary/Goals"
@@ -34,6 +37,8 @@ export type AppServices =
   | typeof HouseholdConfiguration.Identifier
   | typeof IncomeSources.Identifier
   | typeof Goals.Identifier
+  | typeof Commitments.Identifier
+  | typeof DebtHistory.Identifier
 
 /** Building the app can fail two ways: no database, or a migration that did not apply. */
 export type AppLayerError = SqlError.SqlError | Migrator.MigrationError
@@ -43,9 +48,11 @@ export const makeAppLayer = (
   durability: Layer.Layer<StorageDurability> = StorageDurabilityLive
 ): Layer.Layer<AppServices, AppLayerError> => {
   const persisted = MigrationsLive.pipe(Layer.provideMerge(persistence))
-  const modules = Layer.mergeAll(householdAdaptersLayer, trajectoryAdaptersLayer).pipe(
-    Layer.provide(persisted)
-  )
+  const modules = Layer.mergeAll(
+    householdAdaptersLayer,
+    trajectoryAdaptersLayer,
+    commitmentsAdaptersLayer
+  ).pipe(Layer.provide(persisted))
   const services = Layer.mergeAll(persisted, durability, modules)
 
   /**

@@ -58,6 +58,18 @@ export const whole: Percentage = MAX_BASIS_POINTS as Percentage
 
 export const toBasisPoints = (percentage: Percentage): number => percentage
 
+/**
+ * The inverse of `toBasisPoints`, for reading a stored column back. Validated
+ * rather than cast: the column is data from outside the program, and a row
+ * written by an older version could hold anything.
+ */
+export const fromStoredBasisPoints = (
+  basisPoints: number
+): Result.Result<Percentage, InvalidPercentage> =>
+  Number.isInteger(basisPoints)
+    ? fromBasisPoints(basisPoints, basisPoints)
+    : Result.fail(new InvalidPercentage({ value: basisPoints, reason: "sub-basis-point" }))
+
 export const toPercent = (percentage: Percentage): number => percentage / 100
 
 export const toRatio = (percentage: Percentage): number => percentage / BASIS_POINTS_PER_UNIT

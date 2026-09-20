@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest"
 
 import { DatabaseInMemory } from "@/bootstrap/persistence/DatabaseInMemory"
 import { MigrationsLive } from "@/bootstrap/persistence/Migrations"
-import { name, personId } from "@/modules/household/core/domain/Household"
+import { name } from "@/modules/household/core/domain/Household"
 import {
   ActivePeriod,
   BillableDaysPlan,
@@ -21,6 +21,8 @@ import * as LocalDate from "@/shared/domain/LocalDate"
 import * as Money from "@/shared/domain/Money"
 import * as PayoutRatio from "@/shared/domain/PayoutRatio"
 import * as YearMonth from "@/shared/domain/YearMonth"
+
+import type { PersonId } from "@/modules/household/core/domain/Household"
 
 /** Real SQLite with the real migrations — not a fake (architecture.md, testing). */
 const Persistence = Layer.mergeAll(HouseholdConfigurationLive, IncomeSourcesLive).pipe(
@@ -112,44 +114,56 @@ describe("people", () => {
 })
 
 describe("income sources", () => {
-  const person = personId("p1")
-
-  const freelance = new FreelanceIncome({
-    id: incomeSourceId("f1"),
-    personId: person,
-    name: "Freelance",
-    dailyRate: Result.getOrThrow(DailyRate.fromEuros(600)),
-    estimatedPayoutRatio: PayoutRatio.developmentAssumption,
-    billableDays: new BillableDaysPlan({
-      standard: days(20),
-      overrides: new Map([
-        [ym("2026-08"), days(12)],
-        [ym("2026-12"), days(10)]
-      ])
-    }),
-    period: new ActivePeriod({ startDate: date("2026-01-01"), endDate: undefined }),
-    enabled: true
+  /**
+   * A real person, because income references one. Before foreign keys were
+   * enforced these tests inserted against a person id that did not exist, and
+   * passed.
+   */
+  const withPerson = Effect.gen(function* () {
+    const households = yield* HouseholdConfiguration
+    const home = yield* households.create(named("Home"), named("Alex"))
+    return home.members[0]!.id
   })
 
-  const salary = new SalaryIncome({
-    id: incomeSourceId("s1"),
-    personId: person,
-    name: "Salary",
-    monthlyNetBeforeTax: euros(3_400),
-    monthlyIncomeTax: euros(300),
-    annualGross: euros(52_000),
-    period: new ActivePeriod({ startDate: date("2026-01-01"), endDate: date("2027-06-30") }),
-    enabled: false
-  })
+  const freelance = (person: PersonId) =>
+    new FreelanceIncome({
+      id: incomeSourceId("f1"),
+      personId: person,
+      name: "Freelance",
+      dailyRate: Result.getOrThrow(DailyRate.fromEuros(600)),
+      estimatedPayoutRatio: PayoutRatio.developmentAssumption,
+      billableDays: new BillableDaysPlan({
+        standard: days(20),
+        overrides: new Map([
+          [ym("2026-08"), days(12)],
+          [ym("2026-12"), days(10)]
+        ])
+      }),
+      period: new ActivePeriod({ startDate: date("2026-01-01"), endDate: undefined }),
+      enabled: true
+    })
+
+  const salary = (person: PersonId) =>
+    new SalaryIncome({
+      id: incomeSourceId("s1"),
+      personId: person,
+      name: "Salary",
+      monthlyNetBeforeTax: euros(3_400),
+      monthlyIncomeTax: euros(300),
+      annualGross: euros(52_000),
+      period: new ActivePeriod({ startDate: date("2026-01-01"), endDate: date("2027-06-30") }),
+      enabled: false
+    })
 
   it("round-trip a freelance source, overrides included", async () => {
     await run(
       Effect.gen(function* () {
+        const person = yield* withPerson
         const sources = yield* IncomeSources
-        yield* sources.save(freelance)
+        yield* sources.save(freelance(person))
         const [loaded] = yield* sources.all
 
-        expect(loaded).toStrictEqual(freelance)
+        expect(loaded).toStrictEqual(freelance(person))
       })
     )
   })
@@ -157,11 +171,12 @@ describe("income sources", () => {
   it("round-trip a salary source, including an absent end date and the gross", async () => {
     await run(
       Effect.gen(function* () {
+        const person = yield* withPerson
         const sources = yield* IncomeSources
-        yield* sources.save(salary)
+        yield* sources.save(salary(person))
         const [loaded] = yield* sources.all
 
-        expect(loaded).toStrictEqual(salary)
+        expect(loaded).toStrictEqual(salary(person))
       })
     )
   })
@@ -169,9 +184,10 @@ describe("income sources", () => {
   it("keep both variants side by side", async () => {
     await run(
       Effect.gen(function* () {
+        const person = yield* withPerson
         const sources = yield* IncomeSources
-        yield* sources.save(freelance)
-        yield* sources.save(salary)
+        yield* sources.save(freelance(person))
+        yield* sources.save(salary(person))
 
         const kinds = (yield* sources.all).map((source) => source._tag)
         expect(kinds).toStrictEqual(["FreelanceIncome", "SalaryIncome"])
@@ -182,13 +198,14 @@ describe("income sources", () => {
   it("toggle enabled without touching anything else", async () => {
     await run(
       Effect.gen(function* () {
+        const person = yield* withPerson
         const sources = yield* IncomeSources
-        yield* sources.save(freelance)
-        yield* sources.setEnabled(freelance.id, false)
+        yield* sources.save(freelance(person))
+        yield* sources.setEnabled(incomeSourceId("f1"), false)
 
         const [loaded] = yield* sources.all
         expect(loaded?.enabled).toBe(false)
-        expect(loaded).toStrictEqual(new FreelanceIncome({ ...freelance, enabled: false }))
+        expect(loaded).toStrictEqual(new FreelanceIncome({ ...freelance(person), enabled: false }))
       })
     )
   })
@@ -196,11 +213,12 @@ describe("income sources", () => {
   it("replace an override set rather than accumulating one", async () => {
     await run(
       Effect.gen(function* () {
+        const person = yield* withPerson
         const sources = yield* IncomeSources
-        yield* sources.save(freelance)
+        yield* sources.save(freelance(person))
         yield* sources.save(
           new FreelanceIncome({
-            ...freelance,
+            ...freelance(person),
             billableDays: new BillableDaysPlan({ standard: days(20), overrides: new Map() })
           })
         )
@@ -208,7 +226,7 @@ describe("income sources", () => {
         const [loaded] = yield* sources.all
         expect(loaded).toStrictEqual(
           new FreelanceIncome({
-            ...freelance,
+            ...freelance(person),
             billableDays: new BillableDaysPlan({ standard: days(20), overrides: new Map() })
           })
         )
@@ -219,9 +237,10 @@ describe("income sources", () => {
   it("are removed", async () => {
     await run(
       Effect.gen(function* () {
+        const person = yield* withPerson
         const sources = yield* IncomeSources
-        yield* sources.save(freelance)
-        yield* sources.remove(freelance.id)
+        yield* sources.save(freelance(person))
+        yield* sources.remove(incomeSourceId("f1"))
         expect(yield* sources.all).toStrictEqual([])
       })
     )

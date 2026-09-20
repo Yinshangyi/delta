@@ -7,6 +7,8 @@
 import { SqliteClient } from "@effect/sql-sqlite-wasm"
 import { Effect, Layer } from "effect"
 
+import { ForeignKeysOn } from "@/bootstrap/persistence/ForeignKeys"
+
 import type { SqlClient, SqlError } from "effect/unstable/sql"
 
 const spawnWorker = Effect.acquireRelease(
@@ -19,4 +21,6 @@ const spawnWorker = Effect.acquireRelease(
 export const DatabaseLive: Layer.Layer<
   SqliteClient.SqliteClient | SqlClient.SqlClient,
   SqlError.SqlError
-> = SqliteClient.layer({ worker: spawnWorker, installReactivityHooks: true })
+> = ForeignKeysOn.pipe(
+  Layer.provideMerge(SqliteClient.layer({ worker: spawnWorker, installReactivityHooks: true }))
+)
