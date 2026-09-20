@@ -83,6 +83,26 @@ They also run as git hooks — the fast ones on commit, all of them on push
 ([`lefthook.yml`](lefthook.yml), installed on shell entry) — and again in CI,
 where they cannot be skipped: [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
+## Development data
+
+The database is SQLite over OPFS, inside a browser worker — there is no file on
+disk, so there is no `reset-dev-db` command a shell can run. The controls are in
+the app instead, under **Settings → Development**, and exist only in a
+development build: the whole section is behind `import.meta.env.DEV`, which Vite
+resolves away, so a production bundle does not contain them.
+
+| Action | What it does |
+|---|---|
+| Seed if empty | Fills an empty database with the household from `src/bootstrap/seed/`. Adds nothing if one already exists. |
+| Reset to seed data | Empties every table, then seeds. The usual one. |
+| Delete the database | Removes the OPFS file, so the next load runs every migration against nothing — the one that would catch a migration bug. |
+
+Every seed figure is fictional and lives in
+[`DevelopmentSeedData.ts`](src/bootstrap/seed/DevelopmentSeedData.ts), separate
+from the code that inserts it. Tests never read it — `dependency-cruiser`
+forbids that, because fixtures you assert against and data you look at are
+different things.
+
 ## Layout
 
 ```

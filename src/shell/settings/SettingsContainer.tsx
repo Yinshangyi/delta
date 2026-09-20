@@ -6,6 +6,8 @@ import { HouseholdContainer } from "@/modules/household/primary_adapters/react/H
 import { WithHousehold } from "@/modules/household/primary_adapters/react/WithHousehold"
 import { GoalContainer } from "@/modules/trajectory/primary_adapters/react/GoalContainer"
 import { resolveStream } from "@/shared/reactivity/AsyncState"
+import { BackupContainer } from "@/shell/settings/BackupContainer"
+import { DevelopmentPanel } from "@/shell/settings/DevelopmentPanel"
 import { storageAtom } from "@/shell/settings/SettingsAtoms"
 import { SettingsScreen, SettingsSection } from "@/shell/settings/SettingsScreen"
 import { SETTINGS_COPY } from "@/shell/settings/SettingsVocabulary"
@@ -18,9 +20,8 @@ import { ThemeControl } from "@/shell/ThemeControl"
  * AsyncState variants is handled here, so no screen below this line has to know
  * that the data arrives asynchronously.
  *
- * One section is still missing rather than stubbed — export and import, which
- * belongs to DAT-01. A section that cannot do anything is worse than one that
- * is not there.
+ * Every section is now built: household and members, the goal, backup and
+ * restore, appearance, and storage.
  */
 export function SettingsContainer() {
   const { preference, setPreference } = useTheme()
@@ -50,6 +51,13 @@ export function SettingsContainer() {
       </SettingsSection>
 
       <SettingsSection
+        title={SETTINGS_COPY.backup.title}
+        description={SETTINGS_COPY.backup.description}
+      >
+        <BackupContainer />
+      </SettingsSection>
+
+      <SettingsSection
         title={SETTINGS_COPY.storage.title}
         description={SETTINGS_COPY.storage.description}
       >
@@ -71,6 +79,14 @@ export function SettingsContainer() {
           )
         })}
       </SettingsSection>
+      {import.meta.env.DEV ? (
+        <SettingsSection
+          title="Development"
+          description="Seed and reset the database. Not present in a production build."
+        >
+          <DevelopmentPanel />
+        </SettingsSection>
+      ) : null}
     </SettingsScreen>
   )
 }

@@ -62,6 +62,23 @@ export const used = stub
     expect(code).toBe(0)
   })
 
+  it("rejects a test reading the development seed", async () => {
+    const { code, output } = await cruise({
+      "src/modules/demo/core/domain/Thing.node.unit.test.ts": `import { SEED } from "@/bootstrap/seed/DevelopmentSeedData"\nexport const used = SEED\n`,
+      "src/bootstrap/seed/DevelopmentSeedData.ts": `export const SEED = 1\n`
+    })
+    expect(code).not.toBe(0)
+    expect(output).toContain("tests-do-not-use-the-dev-seed")
+  })
+
+  it("lets the seed's own test read it", async () => {
+    const { code } = await cruise({
+      "src/bootstrap/seed/DevelopmentSeed.node.unit.test.ts": `import { SEED } from "@/bootstrap/seed/DevelopmentSeedData"\nexport const used = SEED\n`,
+      "src/bootstrap/seed/DevelopmentSeedData.ts": `export const SEED = 1\n`
+    })
+    expect(code).toBe(0)
+  })
+
   it("rejects React inside core", async () => {
     const { code, output } = await cruise({
       "src/modules/demo/core/domain/Bad.ts": `import { useState } from "react"\nexport const bad = useState\n`

@@ -41,6 +41,7 @@
  *   shared-domain-is-a-leaf          shared/domain/      ──✗──►  anything of ours but itself
  *   domain-no-sql                    anywhere else       ──✗──►  @effect/sql-* · wa-sqlite
  *   shell-only-primary-adapters     src/shell/          ──✗──►  a module's core or adapters
+ *   tests-do-not-use-the-dev-seed   *.test.ts           ──✗──►  bootstrap/seed/
  *   no-circular                     anything            ──✗──►  itself, transitively
  *
  *   The first three also cover shared/domain/.
@@ -168,6 +169,20 @@ module.exports = {
         dependencyTypes: ["npm", "npm-dev", "npm-peer"],
         path: "/node_modules/(@effect/sql-sqlite-wasm|@effect/wa-sqlite)(/|$)"
       }
+    },
+    {
+      name: "tests-do-not-use-the-dev-seed",
+      comment:
+        "A test must not read the development seed (DAT-04). They are different things: the " +
+        "seed exists to be looked at, fixtures exist to be asserted against, and sharing them " +
+        "is how a test comes to depend on a number somebody changed to make a screen look " +
+        "better. The seed's own test is the one exception — it is testing the seed.",
+      severity: "error",
+      from: {
+        path: "\\.test\\.tsx?$",
+        pathNot: "^src/bootstrap/seed/"
+      },
+      to: { path: "^src/bootstrap/seed/" }
     },
     {
       name: "no-circular",

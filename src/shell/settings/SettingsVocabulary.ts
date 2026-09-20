@@ -8,6 +8,37 @@ export const SETTINGS_COPY = {
     title: "Goal",
     description: "The amount the projection runs toward, and whether it is running."
   },
+  backup: {
+    title: "Backup",
+    description: "A copy you keep, somewhere the browser cannot reach.",
+    /** Spec §2.2: hand-entered data with nothing upstream to restore it from. */
+    exportNote:
+      "One file with everything: people, income, commitments, holdings, valuations, the goal and every scenario. It is written to your downloads and sent nowhere.",
+    export: "Save a backup",
+    lastExported: "Last saved",
+    never: "Never saved on this device.",
+    importTitle: "Restore from a backup",
+    importNote:
+      "Restoring replaces everything Delta currently holds on this device. You will see what is in the file before anything is written.",
+    choose: "Choose a file…",
+    reading: "Read a backup saved on",
+    restore: {
+      title: "Replace everything with this backup?",
+      note: "Everything Delta currently holds on this device is deleted and replaced. There is no undo.",
+      exportedOn: "This file was saved on",
+      willReplace: "What changes",
+      confirm: "Replace everything",
+      cancel: "Cancel",
+      nothingThere: "nothing"
+    },
+    failed: {
+      "not-json": "That file is not a Delta backup — it is not even JSON.",
+      "not-a-delta-backup": "That file is JSON, but it is not a Delta backup.",
+      "unsupported-version":
+        "That backup was written by a newer version of Delta than this one can read.",
+      "missing-tables": "That backup is missing part of its contents."
+    }
+  },
   appearance: {
     title: "Appearance",
     description: "Follow the system, or pick a theme for this device."
