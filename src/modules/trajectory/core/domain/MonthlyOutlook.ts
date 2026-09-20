@@ -16,7 +16,7 @@
  * on a commitment's kind here is exactly what spec §17 forbids downstream, and
  * the median answers the question without it.
  */
-import { Data } from "effect"
+import { Data, Result } from "effect"
 
 import * as Money from "@/shared/domain/Money"
 
@@ -41,8 +41,16 @@ const median = (amounts: ReadonlyArray<Money.Money>): Money.Money => {
   return sorted[middle] ?? Money.zero
 }
 
-const mean = (amounts: ReadonlyArray<Money.Money>): Money.Money =>
-  amounts.length === 0 ? Money.zero : Money.multiply(Money.sum(amounts), 1 / amounts.length)
+/**
+ * Rounded to whole euros. An average is not a measured amount, and quoting one
+ * to the cent beside figures that are exact claims a precision it does not
+ * have — €7,412.17 a month is not something anybody will ever see.
+ */
+const mean = (amounts: ReadonlyArray<Money.Money>): Money.Money => {
+  if (amounts.length === 0) return Money.zero
+  const perMonth = Money.toCents(Money.sum(amounts)) / amounts.length
+  return Result.getOrElse(Money.fromCents(Math.round(perMonth / 100) * 100), () => Money.zero)
+}
 
 export const DEFAULT_WINDOW_MONTHS = 12
 

@@ -48,10 +48,13 @@ export function VariancePanel({ variance }: VariancePanelProps) {
           {MoneyText.money(Money.abs(variance.difference))}
         </p>
         <p className="text-ink text-sm">{standing}</p>
+        {/*
+          No children: Badge appends them to its own label, so passing "ahead"
+          to the "sooner" kind read as "ahead sooner". The sentence beside it
+          already says ahead or behind; the badge says which way the date moved.
+        */}
         {variance.standing === "on-plan" ? null : (
-          <Badge kind={variance.standing === "ahead" ? "sooner" : "later"}>
-            {variance.standing === "ahead" ? "ahead" : "behind"}
-          </Badge>
+          <Badge kind={variance.standing === "ahead" ? "sooner" : "later"} />
         )}
       </div>
 

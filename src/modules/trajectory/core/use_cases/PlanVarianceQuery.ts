@@ -44,16 +44,27 @@ const targetMonthOf = (result: ProjectionResult): YearMonth.YearMonth | undefine
     Money.isGreaterThanOrEqualTo(month.endingSavings, result.targetAmount)
   )?.month
 
-const twoLatest = (
+/**
+ * The latest reading, and the latest one from an *earlier month* to compare it
+ * against.
+ *
+ * Not simply the last two: correcting a balance mid-month would then leave the
+ * household with nothing to compare against until the following month, which
+ * is exactly when they have just been looking at their figures.
+ */
+const toCompare = (
   dates: ReadonlyArray<LocalDate.LocalDate>
 ): readonly [LocalDate.LocalDate, LocalDate.LocalDate] | undefined => {
   const ordered = [...dates].sort(LocalDate.Order)
   const latest = ordered.at(-1)
-  const previous = ordered.at(-2)
-  if (latest === undefined || previous === undefined) return undefined
-  return YearMonth.isBefore(LocalDate.toYearMonth(previous), LocalDate.toYearMonth(latest))
-    ? [previous, latest]
-    : undefined
+  if (latest === undefined) return undefined
+
+  const latestMonth = LocalDate.toYearMonth(latest)
+  const previous = ordered
+    .filter((date) => YearMonth.isBefore(LocalDate.toYearMonth(date), latestMonth))
+    .at(-1)
+
+  return previous === undefined ? undefined : [previous, latest]
 }
 
 export const planVariance: Effect.Effect<
@@ -66,7 +77,7 @@ export const planVariance: Effect.Effect<
   if (Option.isNone(goal)) return Option.none()
 
   const capital = yield* CapitalSources
-  const pair = twoLatest(yield* capital.recordedDates)
+  const pair = toCompare(yield* capital.recordedDates)
   if (pair === undefined) return Option.none()
 
   const [previous, latest] = pair

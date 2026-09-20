@@ -172,7 +172,7 @@ describe("ahead of or behind plan", () => {
     expect(Option.isNone(variance)).toBe(true)
   })
 
-  it("has nothing to say with two readings in the same month", async () => {
+  it("has nothing to say when every reading is in the same month", async () => {
     const variance = await run(
       household(
         new Map([
@@ -184,6 +184,26 @@ describe("ahead of or behind plan", () => {
     )
 
     expect(Option.isNone(variance)).toBe(true)
+  })
+
+  it("compares against the last earlier month, not merely the previous reading", async () => {
+    // Correcting a balance mid-month must not cost the household the
+    // comparison against last month.
+    const variance = Option.getOrThrow(
+      await run(
+        household(
+          new Map([
+            ["2026-01-31", euros(10_000)],
+            ["2026-04-02", euros(12_000)],
+            ["2026-04-30", euros(12_500)]
+          ])
+        ),
+        planVariance
+      )
+    )
+
+    expect(Money.toEuros(variance.expected)).toBe(13_000)
+    expect(Money.toEuros(variance.actual)).toBe(12_500)
   })
 
   it("has nothing to say before a goal is set", async () => {

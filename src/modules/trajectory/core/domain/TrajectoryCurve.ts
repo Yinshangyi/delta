@@ -40,15 +40,41 @@ const crossing = (
 ): YearMonth.YearMonth | undefined =>
   points.find((point) => Money.isGreaterThanOrEqualTo(point.savings, target))?.month
 
-export const curveOf = (result: ProjectionResult, today: YearMonth.YearMonth): TrajectoryCurve => {
-  const points = result.months.map(
-    (month) =>
-      new CurvePoint({
-        month: month.month,
-        savings: month.endingSavings,
-        recorded: !YearMonth.isAfter(month.month, today)
-      })
-  )
+export interface RecordedPoint {
+  readonly month: YearMonth.YearMonth
+  readonly amount: Money.Money
+}
+
+/**
+ * `recorded` are the balances the household actually typed in; the projection
+ * supplies everything from today forward.
+ *
+ * They are kept apart because only the first kind is a fact. Running the
+ * engine backwards to fill in history would reconstruct it from today's
+ * configuration, and drawing *that* as a solid line would present a
+ * reconstruction as a record.
+ */
+export const curveOf = (
+  result: ProjectionResult,
+  today: YearMonth.YearMonth,
+  recorded: ReadonlyArray<RecordedPoint> = []
+): TrajectoryCurve => {
+  const past = recorded
+    .filter((point) => YearMonth.isBefore(point.month, today))
+    .sort((a, b) => YearMonth.Order(a.month, b.month))
+    .map((point) => new CurvePoint({ month: point.month, savings: point.amount, recorded: true }))
+
+  const points = [
+    ...past,
+    ...result.months.map(
+      (month) =>
+        new CurvePoint({
+          month: month.month,
+          savings: month.endingSavings,
+          recorded: !YearMonth.isAfter(month.month, today)
+        })
+    )
+  ]
 
   const savings = points.map((point) => point.savings)
   const all = [...savings, result.targetAmount, result.startingSavings]

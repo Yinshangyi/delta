@@ -21,7 +21,7 @@ structure only.
 | Test database | `SqliteClient.makeMemory` | In-memory, deterministic |
 | Migrations | `SqliteMigrator` | Schema is global → lives in `bootstrap/` |
 | Styling | Tailwind | |
-| Charts | Recharts | |
+| Charts | Hand-drawn SVG from pure geometry | TRJ-07's criteria — straight segments, no area fill, fixed tick interval, greyscale-legible — are all restraint, and each would fight a library's defaults. `TrajectoryCurve` is unit-tested; the component only renders it |
 | Tests | Vitest + `@effect/vitest` | |
 | Boundaries | dependency-cruiser | CI gate + Claude `PostToolUse` hook |
 

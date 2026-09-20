@@ -29,6 +29,7 @@ import { projectionAtom } from "@/modules/trajectory/primary_adapters/reactivity
 import {
   dashboardHoldingsAtom,
   planVarianceAtom,
+  recordedCapitalAtom,
   recordManyValuationsAtom
 } from "@/modules/trajectory/primary_adapters/reactivity/TrajectoryAtoms"
 import * as LocalDate from "@/shared/domain/LocalDate"
@@ -43,6 +44,7 @@ import {
 
 import type { ValuedHolding } from "@/modules/capital/core/domain/TotalCapital"
 import type { PlanVariance } from "@/modules/trajectory/core/domain/PlanVariance"
+import type { RecordedPoint } from "@/modules/trajectory/core/domain/TrajectoryCurve"
 import type { NetWorth } from "@/modules/trajectory/core/use_cases/NetWorthQuery"
 import type { Projection } from "@/modules/trajectory/core/use_cases/ProjectionQuery"
 import type { CommitmentAhead } from "@/modules/trajectory/primary_adapters/react/components/CommitmentsAheadPanel"
@@ -63,6 +65,7 @@ export function DashboardContainer() {
   const variance = valueOrUndefined(useAtomValue(planVarianceAtom))
   const holdings = valueOrUndefined(useAtomValue(dashboardHoldingsAtom))
   const commitments = valueOrUndefined(useAtomValue(commitmentsOverviewAtom))
+  const recorded = valueOrUndefined(useAtomValue(recordedCapitalAtom))
 
   return Match.valueTags(projection, {
     Idle: () => <p className="text-muted text-sm">Loading…</p>,
@@ -84,6 +87,7 @@ export function DashboardContainer() {
             ? []
             : commitmentsAhead(commitments.commitments, commitments.positions)
         }
+        recorded={recorded ?? []}
       />
     )
   })
@@ -95,9 +99,10 @@ interface DashboardProps {
   readonly variance: PlanVariance | undefined
   readonly holdings: ReadonlyArray<ValuedHolding>
   readonly ahead: ReadonlyArray<CommitmentAhead>
+  readonly recorded: ReadonlyArray<RecordedPoint>
 }
 
-function Dashboard({ projection, netWorth, variance, holdings, ahead }: DashboardProps) {
+function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }: DashboardProps) {
   const copy = DASHBOARD_COPY
   const [updating, setUpdating] = useState(false)
 
@@ -108,6 +113,7 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead }: Dashboar
   const refreshHoldings = useAtomRefresh(dashboardHoldingsAtom)
   const refreshCapital = useAtomRefresh(capitalOverviewAtom)
   const refreshWorth = useAtomRefresh(netWorthAtom)
+  const refreshRecorded = useAtomRefresh(recordedCapitalAtom)
 
   const submit = async (date: string, amounts: ReadonlyMap<string, string>) => {
     const exit = await runRecord({
@@ -124,6 +130,7 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead }: Dashboar
     refreshHoldings()
     refreshCapital()
     refreshWorth()
+    refreshRecorded()
     setUpdating(false)
     return true
   }
@@ -182,7 +189,10 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead }: Dashboar
 
       <section className="border-line bg-surface flex flex-col gap-3 rounded-lg border p-5">
         <h2 className="text-ink text-sm font-semibold">{copy.chartLabel}</h2>
-        <ProjectionChart curve={curveOf(projection.result, thisMonth())} label={copy.chartLabel} />
+        <ProjectionChart
+          curve={curveOf(projection.result, thisMonth(), recorded)}
+          label={copy.chartLabel}
+        />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

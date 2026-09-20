@@ -168,7 +168,9 @@ describe("against plan", () => {
 
     expect(screen.getByText(/behind the forecast/i)).toBeInTheDocument()
     expect(screen.getByText("€1,500")).toBeInTheDocument()
-    expect(screen.getByText(/↑/)).toBeInTheDocument()
+    // The glyph and the word both, so the standing survives greyscale.
+    expect(screen.getByText("↑")).toBeInTheDocument()
+    expect(screen.getByText("later")).toBeInTheDocument()
   })
 
   it("states the target date movement in months", () => {

@@ -243,3 +243,43 @@ describe("what a month usually looks like", () => {
     expect(outlookOver(steady(), 24).windowMonths).toBe(6)
   })
 })
+
+describe("the recorded segment of the curve", () => {
+  const recorded = [
+    { month: ym("2025-11"), amount: euros(1_000) },
+    { month: ym("2025-12"), amount: euros(1_800) }
+  ]
+
+  it("puts what was actually recorded before the forecast (TRJ-07)", () => {
+    const curve = curveOf(steady(), ym("2026-01"), recorded)
+
+    expect(
+      curve.points.filter((point) => point.recorded).map((point) => YearMonth.toIso(point.month))
+    ).toStrictEqual(["2025-11", "2025-12", "2026-01"])
+  })
+
+  it("draws recorded balances as given rather than as a back-projection", () => {
+    const curve = curveOf(steady(), ym("2026-01"), recorded)
+
+    expect(curve.points.slice(0, 2).map((point) => Money.toEuros(point.savings))).toStrictEqual([
+      1_000, 1_800
+    ])
+  })
+
+  it("ignores a recorded month that is not strictly past", () => {
+    // This month's reading is already the projection's opening balance, so
+    // plotting it again would draw the same figure twice.
+    const curve = curveOf(steady(), ym("2025-11"), recorded)
+
+    expect(curve.points.filter((point) => point.recorded)).toHaveLength(0)
+  })
+
+  it("orders recorded months however they arrive", () => {
+    const curve = curveOf(steady(), ym("2026-01"), [...recorded].reverse())
+
+    expect(curve.points.slice(0, 2).map((point) => YearMonth.toIso(point.month))).toStrictEqual([
+      "2025-11",
+      "2025-12"
+    ])
+  })
+})
