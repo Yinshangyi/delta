@@ -17,11 +17,14 @@ import { DatabaseLive } from "@/bootstrap/persistence/Database"
 import { ensureDurableStorage } from "@/bootstrap/persistence/EnsureDurableStorage"
 import { MigrationsLive } from "@/bootstrap/persistence/Migrations"
 import { StorageDurabilityLive } from "@/bootstrap/persistence/StorageDurabilityLive"
+import { capitalAdaptersLayer } from "@/modules/capital/Dependencies"
 import { commitmentsAdaptersLayer } from "@/modules/commitments/Dependencies"
 import { householdAdaptersLayer } from "@/modules/household/Dependencies"
 import { trajectoryAdaptersLayer } from "@/modules/trajectory/Dependencies"
 
 import type { StorageDurability } from "@/bootstrap/persistence/StorageDurability"
+import type { Holdings } from "@/modules/capital/core/ports/secondary/Holdings"
+import type { ValuationHistory } from "@/modules/capital/core/ports/secondary/ValuationHistory"
 import type { Commitments } from "@/modules/commitments/core/ports/secondary/Commitments"
 import type { DebtHistory } from "@/modules/commitments/core/ports/secondary/DebtHistory"
 import type { HouseholdConfiguration } from "@/modules/household/core/ports/secondary/HouseholdConfiguration"
@@ -39,6 +42,8 @@ export type AppServices =
   | typeof Goals.Identifier
   | typeof Commitments.Identifier
   | typeof DebtHistory.Identifier
+  | typeof Holdings.Identifier
+  | typeof ValuationHistory.Identifier
 
 /** Building the app can fail two ways: no database, or a migration that did not apply. */
 export type AppLayerError = SqlError.SqlError | Migrator.MigrationError
@@ -51,7 +56,8 @@ export const makeAppLayer = (
   const modules = Layer.mergeAll(
     householdAdaptersLayer,
     trajectoryAdaptersLayer,
-    commitmentsAdaptersLayer
+    commitmentsAdaptersLayer,
+    capitalAdaptersLayer
   ).pipe(Layer.provide(persisted))
   const services = Layer.mergeAll(persisted, durability, modules)
 
