@@ -11,8 +11,7 @@ import { Data } from "effect"
 
 import * as CashFlow from "@/shared/domain/CashFlow"
 import * as Money from "@/shared/domain/Money"
-
-import type * as YearMonth from "@/shared/domain/YearMonth"
+import * as YearMonth from "@/shared/domain/YearMonth"
 
 export class MonthlyFlows extends Data.Class<{
   readonly month: YearMonth.YearMonth
@@ -51,4 +50,21 @@ export const groupByMonth = (
   }
 
   return new Map([...buckets].map(([month, bucket]) => [month, foldMonth(month, bucket)]))
+}
+
+/**
+ * The same, but over a stated range: every month is present, and a month with
+ * nothing in it is a zero rather than a gap (TRJ-02).
+ *
+ * The distinction matters downstream. A table skipping quiet months reads as
+ * missing data, and a chart joining across them would draw a slope where the
+ * balance was in fact flat.
+ */
+export const groupOver = (
+  flows: ReadonlyArray<CashFlow.CashFlow>,
+  from: YearMonth.YearMonth,
+  to: YearMonth.YearMonth
+): ReadonlyArray<MonthlyFlows> => {
+  const byMonth = groupByMonth(flows)
+  return YearMonth.range(from, to).map((month) => byMonth.get(month) ?? empty(month))
 }

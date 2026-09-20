@@ -5,7 +5,7 @@
  * adapts one module's use case into another module's port, and that is the
  * root's job rather than an adapter's.
  */
-import { Effect, Layer } from "effect"
+import { Effect, Layer, Result } from "effect"
 
 import { Holdings } from "@/modules/capital/core/ports/secondary/Holdings"
 import { ValuationHistory } from "@/modules/capital/core/ports/secondary/ValuationHistory"
@@ -14,6 +14,7 @@ import {
   CapitalSources,
   type CapitalSourcesShape
 } from "@/modules/trajectory/core/ports/secondary/CapitalSources"
+import * as LocalDate from "@/shared/domain/LocalDate"
 
 export const CapitalSourcesLive: Layer.Layer<
   typeof CapitalSources.Identifier,
@@ -29,7 +30,16 @@ export const CapitalSourcesLive: Layer.Layer<
         totalCapitalAt(on).pipe(
           Effect.provideService(Holdings, holdings),
           Effect.provideService(ValuationHistory, valuations)
-        )
+        ),
+      recordedDates: valuations.all.pipe(
+        Effect.map((snapshots) => {
+          const distinct = new Set(snapshots.map((snapshot) => LocalDate.toIso(snapshot.date)))
+          return [...distinct].sort().flatMap((iso) => {
+            const parsed = Result.getOrUndefined(LocalDate.parse(iso))
+            return parsed === undefined ? [] : [parsed]
+          })
+        })
+      )
     }
 
     return shape
