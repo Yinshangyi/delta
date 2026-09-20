@@ -4,6 +4,10 @@ export const SETTINGS_COPY = {
     title: "Household",
     description: "Who is in it, what each of them earns, and what it is called."
   },
+  goal: {
+    title: "Goal",
+    description: "The amount the projection runs toward, and whether it is running."
+  },
   appearance: {
     title: "Appearance",
     description: "Follow the system, or pick a theme for this device."

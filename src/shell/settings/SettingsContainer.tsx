@@ -3,6 +3,8 @@ import { Match } from "effect"
 
 import { FailureState } from "@/dsl/FailureState"
 import { HouseholdContainer } from "@/modules/household/primary_adapters/react/HouseholdContainer"
+import { WithHousehold } from "@/modules/household/primary_adapters/react/WithHousehold"
+import { GoalContainer } from "@/modules/trajectory/primary_adapters/react/GoalContainer"
 import { resolveStream } from "@/shared/reactivity/AsyncState"
 import { storageAtom } from "@/shell/settings/SettingsAtoms"
 import { SettingsScreen, SettingsSection } from "@/shell/settings/SettingsScreen"
@@ -16,9 +18,9 @@ import { ThemeControl } from "@/shell/ThemeControl"
  * AsyncState variants is handled here, so no screen below this line has to know
  * that the data arrives asynchronously.
  *
- * Two sections are still missing rather than stubbed — the goal and export —
- * because the work they present belongs to TRJ-01 and DAT-01. A section that
- * cannot do anything is worse than one that is not there.
+ * One section is still missing rather than stubbed — export and import, which
+ * belongs to DAT-01. A section that cannot do anything is worse than one that
+ * is not there.
  */
 export function SettingsContainer() {
   const { preference, setPreference } = useTheme()
@@ -38,6 +40,13 @@ export function SettingsContainer() {
         description={SETTINGS_COPY.household.description}
       >
         <HouseholdContainer />
+      </SettingsSection>
+
+      <SettingsSection
+        title={SETTINGS_COPY.goal.title}
+        description={SETTINGS_COPY.goal.description}
+      >
+        <WithHousehold>{(household) => <GoalContainer household={household} />}</WithHousehold>
       </SettingsSection>
 
       <SettingsSection
