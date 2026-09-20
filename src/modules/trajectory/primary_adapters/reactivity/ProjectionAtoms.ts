@@ -1,12 +1,27 @@
 /**
  * The live projection, for every screen that shows a target date.
  *
- * One atom rather than one per screen: the answer is the same everywhere, and
- * two screens computing it separately could disagree while a toggle was in
- * flight.
+ * It runs through the scenario port rather than `projectionFrom` directly, so
+ * that previewing changes what the whole app shows without a second projection
+ * atom that could disagree with this one (SCN-09). With nothing being
+ * previewed the overrides are empty, which is the baseline — the same code
+ * path, not a special case.
+ *
+ * This reaches sideways to a scenarios port from a trajectory adapter. The
+ * alternative was two projection atoms and a rule about which screens read
+ * which, and two answers to one question is the thing worth avoiding.
  */
-import { appRuntime } from "@/bootstrap/runtime/AppRuntime"
-import { projectionFrom } from "@/modules/trajectory/core/use_cases/ProjectionQuery"
-import { thisMonth, today } from "@/shared/presentation/Today"
+import { Effect } from "effect"
 
-export const projectionAtom = appRuntime.atom(projectionFrom({ from: thisMonth(), asOf: today() }))
+import { appRuntime } from "@/bootstrap/runtime/AppRuntime"
+import { ScenarioProjections } from "@/modules/scenarios/core/ports/secondary/ScenarioProjections"
+import { previewAtom } from "@/modules/scenarios/primary_adapters/reactivity/PreviewAtom"
+
+export const projectionAtom = appRuntime.atom((get) => {
+  const preview = get(previewAtom)
+
+  return Effect.gen(function* () {
+    const projections = yield* ScenarioProjections
+    return yield* projections.under(preview === undefined ? [] : preview.overrides)
+  })
+})

@@ -17,12 +17,14 @@ import { DatabaseLive } from "@/bootstrap/persistence/Database"
 import { ensureDurableStorage } from "@/bootstrap/persistence/EnsureDurableStorage"
 import { MigrationsLive } from "@/bootstrap/persistence/Migrations"
 import { StorageDurabilityLive } from "@/bootstrap/persistence/StorageDurabilityLive"
+import { scenarioProjectionsLive } from "@/bootstrap/seams/ScenarioProjectionsLive"
 import { seamsLayer } from "@/bootstrap/seams/Seams"
 import { capitalAdaptersLayer } from "@/modules/capital/Dependencies"
 import { commitmentsAdaptersLayer } from "@/modules/commitments/Dependencies"
 import { householdAdaptersLayer } from "@/modules/household/Dependencies"
 import { scenariosAdaptersLayer } from "@/modules/scenarios/Dependencies"
 import { trajectoryAdaptersLayer } from "@/modules/trajectory/Dependencies"
+import { thisMonth, today } from "@/shared/presentation/Today"
 
 import type { StorageDurability } from "@/bootstrap/persistence/StorageDurability"
 import type { Holdings } from "@/modules/capital/core/ports/secondary/Holdings"
@@ -31,6 +33,7 @@ import type { Commitments } from "@/modules/commitments/core/ports/secondary/Com
 import type { DebtHistory } from "@/modules/commitments/core/ports/secondary/DebtHistory"
 import type { HouseholdConfiguration } from "@/modules/household/core/ports/secondary/HouseholdConfiguration"
 import type { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
+import type { ScenarioProjections } from "@/modules/scenarios/core/ports/secondary/ScenarioProjections"
 import type { Scenarios } from "@/modules/scenarios/core/ports/secondary/Scenarios"
 import type { CapitalSources } from "@/modules/trajectory/core/ports/secondary/CapitalSources"
 import type { CashFlowSources } from "@/modules/trajectory/core/ports/secondary/CashFlowSources"
@@ -54,6 +57,7 @@ export type AppServices =
   | typeof CapitalSources.Identifier
   | typeof OutstandingDebt.Identifier
   | typeof Scenarios.Identifier
+  | typeof ScenarioProjections.Identifier
 
 /** Building the app can fail two ways: no database, or a migration that did not apply. */
 export type AppLayerError = SqlError.SqlError | Migrator.MigrationError
@@ -76,7 +80,16 @@ export const makeAppLayer = (
    * adapt one module's query into another's port, which is composition and so
    * belongs to the root (architecture.md).
    */
-  const seams = seamsLayer.pipe(Layer.provideMerge(modules))
+  /**
+   * The scenario port runs the engine under overridden layers, so it sits
+   * beside the other seams and over the same modules. The window is the
+   * current month, read once: a projection that silently re-anchored itself
+   * mid-session would make two screens disagree.
+   */
+  const seams = Layer.mergeAll(
+    seamsLayer,
+    scenarioProjectionsLive({ from: thisMonth(), asOf: today() })
+  ).pipe(Layer.provideMerge(modules))
   const services = Layer.mergeAll(persisted, durability, seams)
 
   /**

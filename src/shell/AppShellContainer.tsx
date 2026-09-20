@@ -2,6 +2,7 @@ import { EmptyState } from "@/dsl/EmptyState"
 import { CapitalContainer } from "@/modules/capital/primary_adapters/react/CapitalContainer"
 import { CommitmentsContainer } from "@/modules/commitments/primary_adapters/react/CommitmentsContainer"
 import { WithHousehold } from "@/modules/household/primary_adapters/react/WithHousehold"
+import { ScenariosContainer } from "@/modules/scenarios/primary_adapters/react/ScenariosContainer"
 import { DashboardContainer } from "@/modules/trajectory/primary_adapters/react/DashboardContainer"
 import { AppShell } from "@/shell/AppShell"
 import { titleOf } from "@/shell/routing/Section"
@@ -14,11 +15,12 @@ import { SettingsContainer } from "@/shell/settings/SettingsContainer"
  * show their empty state — which is what those screens will show on a
  * brand-new household anyway.
  *
- * Three are built. Settings configures rather than records, so it has
+ * Four are built. Settings configures rather than records, so it has
  * something to show from the first run; Commitments is one section for
  * expenses, debt and tax together, which spec §28 is explicit about; and
  * Capital is where the inclusion question is asked, with the target date in
- * view while it is being asked (spec §74).
+ * view while it is being asked (spec §74); and Scenarios, where a change is
+ * tried before it is made.
  */
 export function AppShellContainer() {
   const section = useSection()
@@ -35,6 +37,14 @@ export function AppShellContainer() {
     return (
       <AppShell current={section}>
         <WithHousehold>{() => <DashboardContainer />}</WithHousehold>
+      </AppShell>
+    )
+  }
+
+  if (section === "scenarios") {
+    return (
+      <AppShell current={section}>
+        <WithHousehold>{(household) => <ScenariosContainer household={household} />}</WithHousehold>
       </AppShell>
     )
   }
