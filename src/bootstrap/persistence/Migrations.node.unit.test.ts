@@ -23,11 +23,19 @@ const countMetadata = Effect.gen(function* () {
 })
 
 layer(MigratedDatabase)("the migration chain", (it) => {
-  it.effect("applies every migration in id order", () =>
+  it.effect("applies every migration, in id order and without gaps", () =>
     Effect.gen(function* () {
-      const rows = yield* applied
-      expect(rows.map((row) => row.migration_id)).toStrictEqual([1])
-      expect(rows[0]?.name).toBe("app_metadata")
+      const ids = (yield* applied).map((row) => row.migration_id)
+      // Contiguous from 1 rather than a hard-coded count: a new migration
+      // should extend this, not break it.
+      expect(ids).toStrictEqual(ids.map((_, index) => index + 1))
+      expect(ids.length).toBeGreaterThan(0)
+    })
+  )
+
+  it.effect("names the first migration, which every later one builds on", () =>
+    Effect.gen(function* () {
+      expect((yield* applied)[0]?.name).toBe("app_metadata")
     })
   )
 
@@ -67,7 +75,8 @@ layer(MigrationsLive.pipe(Layer.provideMerge(MigratedDatabase)))(
   (it) => {
     it.effect("is left untouched by a second migrator", () =>
       Effect.gen(function* () {
-        expect(yield* applied).toHaveLength(1)
+        const ids = (yield* applied).map((row) => row.migration_id)
+        expect(new Set(ids).size).toBe(ids.length)
       })
     )
   }

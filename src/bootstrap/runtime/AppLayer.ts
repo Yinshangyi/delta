@@ -17,13 +17,20 @@ import { DatabaseLive } from "@/bootstrap/persistence/Database"
 import { ensureDurableStorage } from "@/bootstrap/persistence/EnsureDurableStorage"
 import { MigrationsLive } from "@/bootstrap/persistence/Migrations"
 import { StorageDurabilityLive } from "@/bootstrap/persistence/StorageDurabilityLive"
+import { householdAdaptersLayer } from "@/modules/household/Dependencies"
 
 import type { StorageDurability } from "@/bootstrap/persistence/StorageDurability"
+import type { HouseholdConfiguration } from "@/modules/household/core/ports/secondary/HouseholdConfiguration"
+import type { IncomeSources } from "@/modules/household/core/ports/secondary/IncomeSources"
 import type { Migrator, SqlClient, SqlError } from "effect/unstable/sql"
 
 export type PersistenceLayer = Layer.Layer<SqlClient.SqlClient, SqlError.SqlError>
 
-export type AppServices = SqlClient.SqlClient | StorageDurability
+export type AppServices =
+  | SqlClient.SqlClient
+  | StorageDurability
+  | typeof HouseholdConfiguration.Identifier
+  | typeof IncomeSources.Identifier
 
 /** Building the app can fail two ways: no database, or a migration that did not apply. */
 export type AppLayerError = SqlError.SqlError | Migrator.MigrationError
@@ -33,7 +40,8 @@ export const makeAppLayer = (
   durability: Layer.Layer<StorageDurability> = StorageDurabilityLive
 ): Layer.Layer<AppServices, AppLayerError> => {
   const persisted = MigrationsLive.pipe(Layer.provideMerge(persistence))
-  const services = Layer.mergeAll(persisted, durability)
+  const modules = householdAdaptersLayer.pipe(Layer.provide(persisted))
+  const services = Layer.mergeAll(persisted, durability, modules)
 
   /**
    * Asking for durable storage is a startup step, not a screen: it has to

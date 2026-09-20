@@ -37,7 +37,7 @@
  *   core-no-framework                core/               ──✗──►  react · @effect/atom*
  *   core-no-reactivity               core/               ──✗──►  effect/…/reactivity
  *   primary-no-secondary             primary_adapters/   ──✗──►  secondary_adapters/
- *   secondary-only-secondary-ports   secondary_adapters/ ──✗──►  core/, bar the ports
+ *   secondary-no-application-layer   secondary_adapters/ ──✗──►  core/use_cases, ports/primary
  *   shared-domain-is-a-leaf          shared/domain/      ──✗──►  anything of ours but itself
  *   domain-no-sql                    anywhere else       ──✗──►  @effect/sql-* · wa-sqlite
  *   shell-only-primary-adapters     src/shell/          ──✗──►  a module's core or adapters
@@ -104,15 +104,18 @@ module.exports = {
       to: { path: "^src/modules/[^/]+/secondary_adapters/" }
     },
     {
-      name: "secondary-only-secondary-ports",
+      name: "secondary-no-application-layer",
       comment:
-        "secondary_adapters/** may reach core only through core/ports/secondary/**. " +
-        "An adapter that imports a use case has the arrow backwards.",
+        "secondary_adapters/** may reach core through core/ports/secondary/** and core/domain/** " +
+        "— it implements the port, and the port's signature is written in domain types, so an " +
+        "adapter that returns a Person has to be able to build one. What it must not touch is the " +
+        "application layer: an adapter importing a use case, or a primary port, has the arrow " +
+        "backwards.",
       severity: "error",
       from: { path: "^src/modules/[^/]+/secondary_adapters/" },
       to: {
         path: "^src/modules/[^/]+/core/",
-        pathNot: "^src/modules/[^/]+/core/ports/secondary/"
+        pathNot: "^src/modules/[^/]+/core/(ports/secondary|domain)/"
       }
     },
     {

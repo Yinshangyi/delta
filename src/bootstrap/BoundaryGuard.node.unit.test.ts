@@ -74,7 +74,7 @@ describe("the hexagon is enforced, not merely documented", () => {
       "src/modules/demo/core/use_cases/Run.ts": `export const run = 1\n`
     })
     expect(code).not.toBe(0)
-    expect(output).toContain("secondary-only-secondary-ports")
+    expect(output).toContain("secondary-no-application-layer")
   })
 
   it("rejects shared/domain depending on a module", async () => {
@@ -120,6 +120,17 @@ describe("the hexagon is enforced, not merely documented", () => {
     })
     expect(code).not.toBe(0)
     expect(output).toContain("dsl-is-a-leaf")
+  })
+
+  it("accepts an adapter building the domain type its port returns", async () => {
+    // The port's signature is written in domain types, so the adapter that
+    // implements it must be able to construct one. Only the application layer
+    // is off limits.
+    const { code } = await cruise({
+      "src/modules/demo/secondary_adapters/Live.ts": `import { Person } from "@/modules/demo/core/domain/Person"\nexport const live = Person\n`,
+      "src/modules/demo/core/domain/Person.ts": `export const Person = 1\n`
+    })
+    expect(code).toBe(0)
   })
 
   it("accepts a use case importing its own secondary port", async () => {
