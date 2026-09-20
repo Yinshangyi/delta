@@ -41,7 +41,13 @@ type Services =
 const run = <A, E>(effect: Effect.Effect<A, E, Services>): Promise<A> =>
   Effect.runPromise(Effect.scoped(Effect.provide(effect, AppUnderTest)))
 
-const TODAY = "2026-09-30"
+/**
+ * Deliberately not a date the seed data mentions. The seed once carried fixed
+ * valuation dates, which are in the future for anyone running it earlier —
+ * and a future valuation is refused, so the seed died after the commitments
+ * and before the goal. A `today` that happened to match hid it.
+ */
+const TODAY = "2026-01-15"
 
 const counts = Effect.gen(function* () {
   const configuration = yield* HouseholdConfiguration

@@ -15,6 +15,11 @@ export const downloadFile = (name: string, contents: string): void => {
   URL.revokeObjectURL(url)
 }
 
-/** `delta-backup-2026-09-30.json` — sorts chronologically in a folder. */
-export const backupFileName = (exportedAt: string): string =>
-  `delta-backup-${exportedAt.slice(0, 10)}.json`
+/**
+ * `delta-backup-2026-09-30.json` — sorts chronologically in a folder.
+ *
+ * Named for the *local* day, not the UTC one. Someone exporting at five in the
+ * afternoon in Los Angeles is not expecting a file dated tomorrow, and this is
+ * the same drift `LocalDate` exists to keep out of the domain.
+ */
+export const backupFileName = (localDay: string): string => `delta-backup-${localDay}.json`

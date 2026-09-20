@@ -118,7 +118,7 @@ const seedHoldings = (household: HouseholdId, today: string) =>
             name: holding.name,
             institution: holding.institution,
             openingBalanceEuros: holding.valueEuros,
-            balanceDate: holding.on,
+            balanceDate: today,
             today
           })
         : addHolding({
@@ -127,7 +127,7 @@ const seedHoldings = (household: HouseholdId, today: string) =>
             name: holding.name,
             category: holding.category,
             resaleValueEuros: holding.valueEuros,
-            valuationDate: holding.on,
+            valuationDate: today,
             acquisitionCostEuros: holding.acquisitionCostEuros,
             acquisitionDate: holding.acquiredOn,
             today

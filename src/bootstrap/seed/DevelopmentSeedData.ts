@@ -76,20 +76,24 @@ export const SEED = {
     startDate: "2026-09-01"
   },
 
+  /**
+   * Valuations are dated *today* by the seeder, not written here. A fixed date
+   * is in the future for anyone running the seed before it, and a valuation in
+   * the future is refused (CAP-04) — which killed the seed halfway, after the
+   * commitments and before the goal.
+   */
   holdings: [
     {
       kind: "BankAccount" as const,
       name: "Joint current account",
       institution: "Development Bank",
-      valueEuros: 24_000,
-      on: "2026-09-30"
+      valueEuros: 24_000
     },
     {
       kind: "BankAccount" as const,
       name: "Emergency fund",
       institution: "Development Bank",
-      valueEuros: 6_000,
-      on: "2026-09-30"
+      valueEuros: 6_000
     },
     {
       kind: "PhysicalAsset" as const,
@@ -97,8 +101,7 @@ export const SEED = {
       category: "watch",
       valueEuros: 4_200,
       acquisitionCostEuros: 5_100,
-      acquiredOn: "2024-03-01",
-      on: "2026-09-30"
+      acquiredOn: "2024-03-01"
     }
   ],
 

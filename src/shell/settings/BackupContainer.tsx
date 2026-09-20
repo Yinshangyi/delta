@@ -5,6 +5,7 @@ import { useState } from "react"
 import { backupFileName, downloadFile } from "@/bootstrap/backup/DownloadFile"
 import { parseBackup } from "@/bootstrap/backup/ImportBackup"
 import { readLastExport, writeLastExport } from "@/bootstrap/backup/LastExport"
+import { today } from "@/shared/presentation/Today"
 import { resolveMutation, valueOrUndefined } from "@/shared/reactivity/AsyncState"
 import {
   exportBackupAtom,
@@ -46,12 +47,19 @@ export function BackupContainer() {
   const busy = busyOf(exporting) || busyOf(restoring)
 
   const onExport = () => {
+    /*
+      Two clocks, deliberately. The document carries a full UTC timestamp,
+      which is what a machine wants; the file name and the line on screen use
+      the local day, which is what the person means by "today".
+    */
     const exportedAt = new Date().toISOString()
+    const localDay = today()
+
     void runExport(exportedAt).then((exit) => {
       if (!Exit.isSuccess(exit)) return
-      downloadFile(backupFileName(exportedAt), exit.value)
-      writeLastExport(exportedAt)
-      setLastExport(exportedAt)
+      downloadFile(backupFileName(localDay), exit.value)
+      writeLastExport(localDay)
+      setLastExport(localDay)
     })
   }
 
