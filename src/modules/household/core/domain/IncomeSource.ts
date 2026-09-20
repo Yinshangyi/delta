@@ -6,11 +6,10 @@
  * a third variant (rental, dividends) is a new member here plus one translator,
  * with no change to the engine.
  */
-import { Brand, Data, Result } from "effect"
-
-import * as LocalDate from "@/shared/domain/LocalDate"
+import { Brand, Data } from "effect"
 
 import type { PersonId } from "@/modules/household/core/domain/Household"
+import type { ActivePeriod } from "@/shared/domain/ActivePeriod"
 import type * as BillableDays from "@/shared/domain/BillableDays"
 import type * as DailyRate from "@/shared/domain/DailyRate"
 import type * as Money from "@/shared/domain/Money"
@@ -21,29 +20,12 @@ export type IncomeSourceId = Brand.Branded<string, "IncomeSourceId">
 
 export const incomeSourceId = (value: string): IncomeSourceId => value as IncomeSourceId
 
-/** When a source runs. An absent end means "until further notice", not "forever". */
-export class ActivePeriod extends Data.Class<{
-  readonly startDate: LocalDate.LocalDate
-  readonly endDate: LocalDate.LocalDate | undefined
-}> {}
-
-export class InvalidPeriod extends Data.TaggedError("InvalidPeriod")<{
-  readonly startDate: LocalDate.LocalDate
-  readonly endDate: LocalDate.LocalDate
-}> {}
-
 /**
- * A period that ends before it starts produces no cash flows at all, which in
- * the UI is indistinguishable from a source that is merely off. Refused here
- * so the mistake is reported where it was made.
+ * Re-exported rather than redefined: a commitment runs over the same kind of
+ * period, and "is this running in month M" should have one answer
+ * (shared/domain/ActivePeriod.ts).
  */
-export const activePeriod = (
-  startDate: LocalDate.LocalDate,
-  endDate: LocalDate.LocalDate | undefined
-): Result.Result<ActivePeriod, InvalidPeriod> =>
-  endDate !== undefined && LocalDate.isBefore(endDate, startDate)
-    ? Result.fail(new InvalidPeriod({ startDate, endDate }))
-    : Result.succeed(new ActivePeriod({ startDate, endDate }))
+export { ActivePeriod, InvalidPeriod, make as activePeriod } from "@/shared/domain/ActivePeriod"
 
 /**
  * A default for every month, with explicit overrides (spec §11). Zero is a

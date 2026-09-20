@@ -6,12 +6,12 @@
 import { Match } from "effect"
 
 import {
-  type ActivePeriod,
   daysIn,
   type FreelanceIncome,
   type IncomeSource,
   type SalaryIncome
 } from "@/modules/household/core/domain/IncomeSource"
+import * as ActivePeriod from "@/shared/domain/ActivePeriod"
 import * as BillableDays from "@/shared/domain/BillableDays"
 import * as CashFlow from "@/shared/domain/CashFlow"
 import * as DailyRate from "@/shared/domain/DailyRate"
@@ -19,18 +19,6 @@ import * as LocalDate from "@/shared/domain/LocalDate"
 import * as Money from "@/shared/domain/Money"
 import * as PayoutRatio from "@/shared/domain/PayoutRatio"
 import * as YearMonth from "@/shared/domain/YearMonth"
-
-/**
- * A month counts when the source is running for any part of it. An absent end
- * date means "still running", not "ran forever" — the caller's horizon bounds
- * it instead.
- */
-const isActiveIn = (period: ActivePeriod, month: YearMonth.YearMonth): boolean => {
-  const started = LocalDate.toYearMonth(period.startDate)
-  if (YearMonth.isBefore(month, started)) return false
-  if (period.endDate === undefined) return true
-  return YearMonth.isOnOrBefore(month, LocalDate.toYearMonth(period.endDate))
-}
 
 /** Spec §9: RevenueHT = DailyRate × BillableDays, then × the payout ratio. */
 const freelanceAmount = (source: FreelanceIncome, month: YearMonth.YearMonth): Money.Money => {
@@ -69,17 +57,15 @@ export const cashFlowsFor = (
 ): ReadonlyArray<CashFlow.CashFlow> => {
   if (!source.enabled) return []
 
-  return YearMonth.range(from, to)
-    .filter((month) => isActiveIn(source.period, month))
-    .map((month) => {
-      const { amount, kind } = contributionIn(source, month)
-      return CashFlow.make({
-        date: LocalDate.lastDayOf(month),
-        amount,
-        sourceId: source.id,
-        sourceKind: kind
-      })
+  return ActivePeriod.monthsIn(source.period, from, to).map((month) => {
+    const { amount, kind } = contributionIn(source, month)
+    return CashFlow.make({
+      date: LocalDate.lastDayOf(month),
+      amount,
+      sourceId: source.id,
+      sourceKind: kind
     })
+  })
 }
 
 /** A month with nothing billed earns nothing, which is a real answer (spec §11). */
