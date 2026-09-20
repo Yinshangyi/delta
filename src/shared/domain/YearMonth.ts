@@ -69,3 +69,4 @@ export const equals = (a: YearMonth, b: YearMonth): boolean => a === b
 
 export const isBefore = Ord.isLessThan(Order)
 export const isAfter = Ord.isGreaterThan(Order)
+export const isOnOrBefore = Ord.isLessThanOrEqualTo(Order)
