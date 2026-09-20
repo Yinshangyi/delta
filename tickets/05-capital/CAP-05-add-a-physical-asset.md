@@ -2,7 +2,7 @@
 id: CAP-05
 title: Add a physical asset
 epic: capital
-status: todo
+status: done
 size: M
 depends_on: [CAP-01, CAP-02]
 spec: ["§70", "§78"]
@@ -14,11 +14,11 @@ As a **household member**, I want **to record something I own and could sell** s
 
 ## Acceptance criteria
 
-- [ ] Name, category, estimated resale value, valuation date, optional acquisition cost and date
-- [ ] The form states the value means net proceeds — not purchase price, not listing price
-- [ ] Acquisition cost is visually subordinate and never enters capital or the projection
-- [ ] The valuation is stored with `basis: "estimated"`
-- [ ] No gain or profit figure is derived or displayed anywhere
+- [x] Name, category, estimated resale value, valuation date, optional acquisition cost and date
+- [x] The form states the value means net proceeds — not purchase price, not listing price
+- [x] Acquisition cost is visually subordinate and never enters capital or the projection
+- [x] The valuation is stored with `basis: "estimated"`
+- [x] No gain or profit figure is derived or displayed anywhere
 
 ## Notes
 

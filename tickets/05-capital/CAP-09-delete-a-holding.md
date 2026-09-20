@@ -2,7 +2,7 @@
 id: CAP-09
 title: Delete a holding
 epic: capital
-status: todo
+status: done
 size: S
 depends_on: [CAP-08]
 spec: ["§72"]
@@ -14,7 +14,7 @@ As a **household member**, I want **to remove a holding permanently** so that **
 
 ## Acceptance criteria
 
-- [ ] Confirmation names the valuation history that will be lost
-- [ ] Excluding is offered as the reversible alternative
-- [ ] Delete does not carry primary-action weight
-- [ ] Capital and the target date recalculate after deletion
+- [x] Confirmation names the valuation history that will be lost
+- [x] Excluding is offered as the reversible alternative
+- [x] Delete does not carry primary-action weight
+- [x] Capital and the target date recalculate after deletion

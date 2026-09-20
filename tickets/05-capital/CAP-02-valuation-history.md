@@ -2,7 +2,7 @@
 id: CAP-02
 title: Valuation history
 epic: capital
-status: todo
+status: done
 size: M
 depends_on: [CAP-01]
 spec: ["§71", "§2.3"]
@@ -14,11 +14,11 @@ As a **developer**, I want **dated valuations per holding** so that **reality ov
 
 ## Acceptance criteria
 
-- [ ] `BalanceSnapshot` carries holding, date, amount and basis
-- [ ] Bank balances are `actual`; asset valuations are `estimated`
-- [ ] The latest snapshot for a holding is its value
-- [ ] History is retrievable, and snapshots are editable and deletable
-- [ ] A household with one account behaves exactly as the old single-savings model
+- [x] `BalanceSnapshot` carries holding, date, amount and basis
+- [x] Bank balances are `actual`; asset valuations are `estimated`
+- [x] The latest snapshot for a holding is its value
+- [x] History is retrievable, and snapshots are editable and deletable
+- [x] A household with one account behaves exactly as the old single-savings model
 
 ## Notes
 

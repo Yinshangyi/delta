@@ -2,7 +2,7 @@
 id: CAP-03
 title: Add a bank account
 epic: capital
-status: todo
+status: done
 size: S
 depends_on: [CAP-01, CAP-02]
 spec: ["§69", "§71", "§72"]
@@ -15,13 +15,13 @@ that **it counts toward our total capital**.
 
 ## Acceptance criteria
 
-- [ ] Name, optional institution, opening balance, balance date
-- [ ] Included in capital by default
-- [ ] The opening balance is stored as a `BalanceSnapshot` with `basis: "actual"`
-- [ ] Total capital increases by the balance immediately on save
-- [ ] The projection's starting balance updates, and the target date recalculates
-- [ ] A zero or negative balance is accepted — overdrafts are real
-- [ ] A household with one account behaves exactly as the single-savings model did
+- [x] Name, optional institution, opening balance, balance date
+- [x] Included in capital by default
+- [x] The opening balance is stored as a `BalanceSnapshot` with `basis: "actual"`
+- [x] Total capital increases by the balance immediately on save
+- [x] The projection's starting balance updates, and the target date recalculates
+- [x] A zero or negative balance is accepted — overdrafts are real
+- [x] A household with one account behaves exactly as the single-savings model did
 
 ## Notes
 
