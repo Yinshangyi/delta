@@ -1,0 +1,53 @@
+# `rc` is sourced before anything runs, so a commit or push made outside the nix dev shell — a git
+# client, Claude Code's desktop app — still finds lefthook itself, node, ast-grep and the rest.
+# Without it the generated .git/hooks/* print "Can't find lefthook in PATH" and exit 0, which is
+# the one failure mode worth designing against: a gate that passes because it never ran.
+rc: nix/devshell-path.sh
+
+# The rungs get wider as they get later: an edit hook sees one file, pre-commit sees the staged
+# ones, pre-push sees the whole tree, CI sees it again on a machine nobody configured.
+
+pre-commit:
+  commands:
+    # Structural idiom gate on the staged TypeScript.
+    ast-grep:
+      glob: "*.{ts,tsx}"
+      run: pnpm exec ast-grep scan -c .config/ast-grep/sgconfig.yml {staged_files}
+
+    lint:
+      glob: "*.{ts,tsx}"
+      run: pnpm exec oxlint {staged_files}
+
+    # Auto-format and re-stage. The whole-tree check is the hard gate on push.
+    format:
+      priority: 1
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css}"
+      run: pnpm exec oxfmt --write {staged_files}
+      stage_fixed: true
+
+pre-push:
+  commands:
+    # No glob on any of these: a violation can be introduced by code far from the staged files, or
+    # by an edit to a config that no glob would re-validate.
+    ast-grep:
+      run: pnpm run ast-grep
+
+    # The rules' own tests, plus the check that every rule has one.
+    ast-grep-test:
+      run: pnpm run ast-grep:test
+
+    format-check:
+      run: pnpm run format:check
+
+    lint:
+      run: pnpm run lint
+
+    # The hexagon's boundaries, and import cycles.
+    boundaries:
+      run: pnpm run lint:boundaries
+
+    type-check:
+      run: pnpm run type-check
+
+    test:
+      run: pnpm test

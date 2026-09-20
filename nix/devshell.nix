@@ -10,6 +10,8 @@ pkgs.mkShell {
     # and fetches that exact version. pnpm itself is never installed by hand.
     pkgs.corepack
     pkgs.git
+    # Installs the pre-commit and pre-push gates on shell entry.
+    pkgs.lefthook
     # Trims the output of common dev commands before it reaches the model.
     rtk
   ];
@@ -24,6 +26,9 @@ pkgs.mkShell {
     export RTK_DB_PATH="$PWD/.claude/cache/rtk/history.db"
     export RTK_TELEMETRY_DISABLED=1
     mkdir -p "$PWD/.claude/cache/rtk" && chmod 700 "$PWD/.claude/cache/rtk"
+
+    # Install the git hooks (lefthook.yml) on shell entry.
+    lefthook install --force > /dev/null 2>&1 || true
 
     # Record this shell's PATH so the Claude Code hooks find the same node and
     # tools when Claude Code was not started from the shell — which the desktop
