@@ -2,7 +2,7 @@
 id: HH-11
 title: Household cash flows query
 epic: household
-status: todo
+status: done
 size: S
 depends_on: [HH-09, HH-10]
 spec: ["§13", "§29"]
@@ -14,6 +14,18 @@ As a **developer**, I want **one query returning the household's whole income co
 
 ## Acceptance criteria
 
-- [ ] Returns `CashFlow[]` over a date range for every enabled source
-- [ ] Adding a new income source type requires no change outside this module
-- [ ] No special-casing of particular people anywhere
+- [x] Returns `CashFlow[]` over a date range for every enabled source
+- [x] Adding a new income source type requires no change outside this module
+- [x] No special-casing of particular people anywhere
+
+## Notes
+
+The third criterion is structural rather than a test. The variant union and its
+translator both live in `core/domain/IncomeCashFlows.ts`, and the query below
+them only flattens — so a rental or dividend source is a new member and a new
+branch in `contributionIn`, neither of which is visible from outside the
+module. `secondary-no-application-layer` and `core-no-adapters` are what keep
+that true as the module grows.
+
+The seam has no consumer yet: TRJ-03 (`CashFlowSources`) is what plugs it into
+the projection engine.

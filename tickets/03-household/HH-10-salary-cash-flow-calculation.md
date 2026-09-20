@@ -2,7 +2,7 @@
 id: HH-10
 title: Salary cash flow calculation
 epic: household
-status: todo
+status: done
 size: S
 depends_on: [HH-07]
 spec: ["§12", "§63"]
@@ -14,6 +14,6 @@ As a **developer**, I want **salary converted into dated cash flows** so that **
 
 ## Acceptance criteria
 
-- [ ] One positive cash flow per active month, net of income tax
-- [ ] Respects start and end dates and the enabled flag
-- [ ] Pure function
+- [x] One positive cash flow per active month, net of income tax
+- [x] Respects start and end dates and the enabled flag
+- [x] Pure function
