@@ -2,7 +2,7 @@
 id: CMT-07
 title: Tax liability with a payment schedule
 epic: commitments
-status: todo
+status: done
 size: M
 depends_on: [CMT-01]
 spec: ["§24", "§25", "§26", "§48"]
@@ -14,11 +14,11 @@ As a **household member**, I want **to record a tax bill and its exact payment d
 
 ## Acceptance criteria
 
-- [ ] Name, tax year, confirmed or estimated status, total amount
-- [ ] An explicit schedule of dated amounts, variable length, rows addable and removable
-- [ ] The schedule is never collapsed into a monthly average
-- [ ] €5,303, €5,303, €5,303, €5,306 land on their configured dates exactly
-- [ ] Estimated liabilities are visually distinguished from confirmed ones
+- [x] Name, tax year, confirmed or estimated status, total amount
+- [x] An explicit schedule of dated amounts, variable length, rows addable and removable
+- [x] The schedule is never collapsed into a monthly average
+- [x] €5,303, €5,303, €5,303, €5,306 land on their configured dates exactly
+- [x] Estimated liabilities are visually distinguished from confirmed ones
 
 ## Notes
 

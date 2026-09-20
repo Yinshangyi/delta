@@ -2,7 +2,7 @@
 id: CMT-09
 title: Enable or disable a commitment
 epic: commitments
-status: todo
+status: done
 size: S
 depends_on: [CMT-02]
 spec: ["§18", "§40"]
@@ -14,7 +14,7 @@ As a **household member**, I want **to switch a commitment off without deleting 
 
 ## Acceptance criteria
 
-- [ ] A disabled commitment produces no cash flows
-- [ ] It stays in the list, muted and struck, marked disabled
-- [ ] The row treatment carries the state; the toggle only confirms it
-- [ ] Toggling recalculates the projection immediately
+- [x] A disabled commitment produces no cash flows
+- [x] It stays in the list, muted and struck, marked disabled
+- [x] The row treatment carries the state; the toggle only confirms it
+- [x] Toggling recalculates the projection immediately
