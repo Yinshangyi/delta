@@ -19,7 +19,7 @@ export function Select({ id, describedBy, children, ...rest }: SelectProps) {
     <select
       id={id}
       aria-describedby={describedBy}
-      className="bg-surface text-ink border-line rounded-md border px-3 py-1.5 text-sm"
+      className="bg-surface text-ink border-line w-full min-w-0 rounded-md border px-3 py-1.5 text-sm"
       {...rest}
     >
       {children}

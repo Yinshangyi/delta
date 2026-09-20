@@ -55,7 +55,12 @@ export function Dialog({ open, onClose, title, children, actions }: DialogProps)
     <dialog
       ref={ref}
       aria-labelledby="dialog-title"
-      className="bg-surface text-ink border-line m-auto w-full max-w-md rounded-lg border p-6 backdrop:bg-black/40"
+      /*
+        A form can be taller than the viewport — a tax schedule grows a row at
+        a time — so the dialog scrolls rather than pushing its own actions off
+        the screen.
+      */
+      className="bg-surface text-ink border-line m-auto max-h-[85vh] w-[calc(100%-2rem)] max-w-md overflow-y-auto rounded-lg border p-6 backdrop:bg-black/40"
     >
       <h2 id="dialog-title" className="text-lg font-semibold tracking-tight">
         {title}

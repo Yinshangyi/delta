@@ -86,6 +86,12 @@ export function CommitmentsContainer({ household }: CommitmentsContainerProps) {
   })
 }
 
+/** Adding and editing are different intents, so they are different values. */
+interface CommitmentEditor {
+  readonly editing: CommitmentId | undefined
+  readonly initial: CommitmentFormState | undefined
+}
+
 interface CommitmentsProps {
   readonly household: HouseholdId
   readonly overview: CommitmentsOverview
@@ -100,8 +106,13 @@ function Commitments({ household, overview, history }: CommitmentsProps) {
   const removeBalance = useCommitmentMutation(removeDebtBalanceAtom)
 
   const [selected, setSelected] = useState<CommitmentId | undefined>(undefined)
-  const [editing, setEditing] = useState<CommitmentFormState | undefined>(undefined)
-  const [adding, setAdding] = useState(false)
+  /**
+   * One piece of state for the form, not two. Reading the id from the
+   * *selection* instead cost a commitment: adding while a row was selected
+   * saved the new one over it, because "what is selected" and "what is being
+   * edited" looked the same from the save's side.
+   */
+  const [form, setForm] = useState<CommitmentEditor | undefined>(undefined)
   const [deleting, setDeleting] = useState<Commitment | undefined>(undefined)
 
   const busy = [save, toggle, remove, record, removeBalance].some((mutation) =>
@@ -111,10 +122,12 @@ function Commitments({ household, overview, history }: CommitmentsProps) {
   const position = current === undefined ? undefined : overview.positions.get(current.id)
 
   const submit = async (state: CommitmentFormState): Promise<boolean> => {
-    const exit = await save.run({ draft: draftFrom(household, state), existing: current?.id })
+    const exit = await save.run({
+      draft: draftFrom(household, state),
+      existing: form?.editing
+    })
     if (!Exit.isSuccess(exit)) return false
-    setAdding(false)
-    setEditing(undefined)
+    setForm(undefined)
     return true
   }
 
@@ -148,7 +161,7 @@ function Commitments({ household, overview, history }: CommitmentsProps) {
             )}
             onSelect={(id) => setSelected(id === selected ? undefined : id)}
             onToggle={(id, enabled) => void toggle.run({ id, enabled })}
-            onAdd={() => setAdding(true)}
+            onAdd={() => setForm({ editing: undefined, initial: undefined })}
           />
         }
         detail={
@@ -159,27 +172,26 @@ function Commitments({ household, overview, history }: CommitmentsProps) {
             busy={busy}
             balances={balances}
             onEdit={() => {
-              if (current !== undefined) setEditing(formStateFrom(current))
+              if (current !== undefined) {
+                setForm({ editing: current.id, initial: formStateFrom(current) })
+              }
             }}
             onDelete={() => setDeleting(current)}
           />
         }
       />
 
-      {adding || editing !== undefined ? (
+      {form === undefined ? null : (
         <CommitmentForm
-          key={editing === undefined ? "add" : `edit-${current?.id ?? ""}`}
+          key={form.editing ?? "add"}
           open
-          initial={editing}
+          initial={form.initial}
           busy={busy}
           error={errorOf(save.state)}
           onSubmit={submit}
-          onCancel={() => {
-            setAdding(false)
-            setEditing(undefined)
-          }}
+          onCancel={() => setForm(undefined)}
         />
-      ) : null}
+      )}
 
       <DeleteCommitmentDialog
         name={deleting?.name}

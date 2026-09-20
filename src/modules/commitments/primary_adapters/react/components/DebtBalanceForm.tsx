@@ -37,7 +37,11 @@ export function DebtBalanceForm({
       <h4 className="text-ink text-sm font-semibold">{copy.recordBalance}</h4>
 
       <form
-        className="grid items-end gap-3 sm:grid-cols-[1fr_1fr_auto]"
+        /*
+          Stacked, not a row: this form lives in the detail column, which is
+          narrow at every width, and a three-column grid overflowed it.
+        */
+        className="flex flex-col gap-3"
         onSubmit={(event) => {
           event.preventDefault()
           onRecord(date, remaining)
@@ -67,9 +71,11 @@ export function DebtBalanceForm({
             />
           )}
         </Field>
-        <Button type="submit" disabled={busy || date === "" || remaining === ""}>
-          {copy.recordSave}
-        </Button>
+        <div className="flex justify-end">
+          <Button type="submit" disabled={busy || date === "" || remaining === ""}>
+            {copy.recordSave}
+          </Button>
+        </div>
       </form>
 
       {history.length === 0 ? null : (

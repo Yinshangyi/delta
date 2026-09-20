@@ -62,7 +62,13 @@ export function TextInput({ id, describedBy, invalid, ...rest }: TextInputProps)
       id={id}
       aria-describedby={describedBy}
       aria-invalid={invalid === true ? true : undefined}
-      className={`bg-surface text-ink rounded-md border px-3 py-1.5 text-sm ${
+      /*
+        `w-full min-w-0`: an input carries an intrinsic width of about twenty
+        characters, which a grid track will not shrink below. Without this the
+        control keeps that width and spills out of any container narrower than
+        it — which is how a dialog's fields ended up outside the dialog.
+      */
+      className={`bg-surface text-ink w-full min-w-0 rounded-md border px-3 py-1.5 text-sm ${
         invalid === true ? "border-negative" : "border-line"
       }`}
       {...rest}
