@@ -2,7 +2,7 @@
 id: TRJ-02
 title: Cash flow aggregation
 epic: trajectory
-status: todo
+status: done
 size: S
 depends_on: [FND-03, FND-02]
 spec: ["§29", "§30"]
@@ -14,7 +14,7 @@ As a **developer**, I want **dated cash flows grouped into months** so that **th
 
 ## Acceptance criteria
 
-- [ ] Groups `CashFlow[]` by `YearMonth`, summing positives and negatives separately
-- [ ] Months with no flows are present with zero, not absent
-- [ ] Each month retains its constituent flows for drill-down
-- [ ] Pure function, timezone-independent
+- [x] Groups `CashFlow[]` by `YearMonth`, summing positives and negatives separately
+- [x] Months with no flows are present with zero, not absent
+- [x] Each month retains its constituent flows for drill-down
+- [x] Pure function, timezone-independent

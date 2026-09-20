@@ -2,7 +2,7 @@
 id: TRJ-03
 title: Cash flow sources
 epic: trajectory
-status: todo
+status: done
 size: S
 depends_on: [HH-11, CMT-13]
 spec: ["§29"]
@@ -14,7 +14,7 @@ As a **developer**, I want **one port supplying every cash flow to the projectio
 
 ## Acceptance criteria
 
-- [ ] `between(from, to)` merges the household and commitment queries
-- [ ] The live implementation is the only place those two are combined
-- [ ] Trajectory depends on this port alone, not on household or commitments directly
-- [ ] Substituting a stub changes the projection with no other code touched
+- [x] `between(from, to)` merges the household and commitment queries
+- [x] The live implementation is the only place those two are combined
+- [x] Trajectory depends on this port alone, not on household or commitments directly
+- [x] Substituting a stub changes the projection with no other code touched

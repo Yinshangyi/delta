@@ -2,7 +2,7 @@
 id: TRJ-05
 title: Update balances and recalibrate
 epic: trajectory
-status: todo
+status: done
 size: L
 depends_on: [TRJ-04, CAP-04, CAP-06]
 spec: ["§16", "§74", "§2.3"]
@@ -14,13 +14,13 @@ As a **household member**, I want **to record current balances and immediately s
 
 ## Acceptance criteria
 
-- [ ] One form updates several holdings in a single pass
-- [ ] Blank means unchanged, not zero, and that is unmistakable
-- [ ] Prior values shown beside each field
-- [ ] After saving, the expected and actual figures are compared: €29,500 expected against €28,000 actual reads as €1,500 behind plan
-- [ ] The moved target date is stated explicitly: October 2028 → November 2028
-- [ ] Future projections restart from the recorded values
-- [ ] No transaction entry is required at any point
+- [x] One form updates several holdings in a single pass
+- [x] Blank means unchanged, not zero, and that is unmistakable
+- [x] Prior values shown beside each field
+- [x] After saving, the expected and actual figures are compared: €29,500 expected against €28,000 actual reads as €1,500 behind plan
+- [x] The moved target date is stated explicitly: October 2028 → November 2028
+- [x] Future projections restart from the recorded values
+- [x] No transaction entry is required at any point
 
 ## Notes
 
