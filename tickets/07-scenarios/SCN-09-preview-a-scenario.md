@@ -22,8 +22,10 @@ As a **household member**, I want **to view my dashboard under a scenario withou
 ## Notes
 
 Partly done, and marked as such. The banner is app-wide and persistent, and the
-**dashboard** — target date, chart, month-by-month table, variance — renders
-under the scenario through the same projection atom as the baseline.
+**dashboard** — target date, chart, variance — and the **Projection** screen —
+chart, month-by-month table — both render under the scenario, through the same
+projection atom as the baseline. There is no second projection that could
+disagree with the first (TRJ-11).
 
 The Capital and Commitments screens still show real configuration while
 previewing. That is a deliberate stop rather than an oversight: they are the
