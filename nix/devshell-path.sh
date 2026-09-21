@@ -20,11 +20,37 @@ if [ -r "$devshell_path_file" ]; then
   # garbage-collected. A snapshot from a collected generation leaves a PATH
   # full of directories that no longer exist — every gate then quietly finds
   # nothing and passes, which is the one failure this whole file exists to
-  # prevent. Check one entry rather than trust the file's presence.
-  devshell_first="${devshell_recorded%%:*}"
-  if [ ! -d "$devshell_first" ]; then
-    echo "[devshell] $devshell_path_file points at tools that no longer exist ($devshell_first)." >&2
-    echo "[devshell] The nix store has been garbage-collected since it was written. Run \`direnv allow\` (or \`nix develop\`) once in the project to rebuild it." >&2
+  # prevent.
+  #
+  # Every store entry is checked, not just the first. A collection takes
+  # whatever is unreachable and leaves the rest, so a PATH can keep node and
+  # lose lefthook — and a guard that reads entry one and reports success is the
+  # same silent pass wearing a check. Both have happened here.
+  devshell_missing=""
+  devshell_missing_count=0
+  devshell_rest="$devshell_recorded"
+  while [ -n "$devshell_rest" ]; do
+    devshell_entry="${devshell_rest%%:*}"
+    case "$devshell_rest" in
+      *:*) devshell_rest="${devshell_rest#*:}" ;;
+      *) devshell_rest="" ;;
+    esac
+    # Only /nix/store entries matter. A recorded PATH also carries ambient
+    # system directories, and several of those legitimately do not exist on a
+    # given Mac — warning about them trains the reader to ignore the warning,
+    # which costs more than the check buys.
+    case "$devshell_entry" in
+      /nix/store/*) ;;
+      *) continue ;;
+    esac
+    [ -d "$devshell_entry" ] && continue
+    devshell_missing_count=$((devshell_missing_count + 1))
+    [ -n "$devshell_missing" ] || devshell_missing="$devshell_entry"
+  done
+
+  if [ -n "$devshell_missing" ]; then
+    echo "[devshell] $devshell_path_file points at tools that no longer exist (missing directories: $devshell_missing_count), starting with $devshell_missing." >&2
+    echo "[devshell] The nix store has been garbage-collected since it was written, so some gates cannot find their tools and would skip in silence. Run \`direnv allow\` (or \`nix develop\`) once in the project to rebuild it." >&2
   fi
 else
   echo "[devshell] $devshell_path_file is missing: run \`direnv allow\` (or \`nix develop\`) once in the project so the edit gates can find their tools." >&2
