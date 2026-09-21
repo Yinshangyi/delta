@@ -36,7 +36,7 @@ export function AppShell({ current, children }: AppShellProps) {
                   aria-current={isCurrent ? "page" : undefined}
                   className={`block rounded-md px-3 py-2 text-sm whitespace-nowrap ${
                     isCurrent
-                      ? "bg-accent-soft text-accent font-semibold"
+                      ? "bg-accent-soft text-ink font-semibold"
                       : "text-muted hover:text-ink hover:bg-raised"
                   }`}
                 >

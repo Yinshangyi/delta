@@ -21,6 +21,7 @@ const ROLES = [
   "accent",
   "accent-ink",
   "accent-soft",
+  "forecast",
   "positive",
   "negative",
   "estimated"
@@ -60,7 +61,20 @@ const colour = (palette: ReadonlyMap<string, string>, role: Role): string => {
   return value!
 }
 
-const TEXT_ROLES = ["ink", "muted", "accent", "positive", "negative", "estimated"] as const
+/**
+ * `forecast` is here because the chart labels its crossing month in it, so it
+ * is text as well as a stroke — a colour that only ever drew a 2px line would
+ * not owe the same 4.5:1.
+ */
+const TEXT_ROLES = [
+  "ink",
+  "muted",
+  "accent",
+  "forecast",
+  "positive",
+  "negative",
+  "estimated"
+] as const
 
 const THEMES = [
   ["light", LIGHT],

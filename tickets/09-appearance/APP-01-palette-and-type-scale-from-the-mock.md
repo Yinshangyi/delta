@@ -2,7 +2,7 @@
 id: APP-01
 title: Palette and type scale from the mock
 epic: appearance
-status: todo
+status: done
 size: M
 depends_on: [SHL-02]
 spec: []
@@ -14,15 +14,26 @@ As a **household member**, I want **the app to carry the mock's visual identity*
 
 ## Acceptance criteria
 
-- [ ] The ground is near-white and the surface is white, as in the mock — not the current blue-tinted grey
-- [ ] The primary action is black on white, not blue
-- [ ] Blue survives as the forecast's colour in the chart and nowhere else structural
-- [ ] An eyebrow style exists: uppercase, letterspaced, small, muted
-- [ ] The display size used for the target date is a named step in the scale, not a one-off
+- [x] The ground is near-white and the surface is white, as in the mock — not the current blue-tinted grey
+- [x] The primary action is black on white, not blue
+- [x] Blue survives as the forecast's colour in the chart and nowhere else structural
+- [x] An eyebrow style exists: uppercase, letterspaced, small, muted
+- [x] The display size used for the target date is a named step in the scale, not a one-off
 - [ ] Dark theme is redesigned to match, not inverted
-- [ ] Every distinction still survives greyscale (design-brief principle 5)
+- [x] Every distinction still survives greyscale (design-brief principle 5)
 
 ## Notes
+
+**Dark is unticked.** The accent and forecast roles were re-pointed so dark
+keeps the same meanings — the action is the lightest thing there, as it is the
+darkest thing in light — but the ground, surface and ink are untouched and I did
+not see dark rendered. Redesigning it against a mock that only exists in light
+is its own decision, and guessing at it is how the two drifted the first time.
+
+Two catches from `Palette.node.unit.test.ts`, both real: the new muted read
+4.47:1 on the new ground, just under AA, and the forecast blue had to be
+declared in both themes and darkened to 4.95:1 because the chart labels its
+crossing month in it — it is text, not only a stroke.
 
 The mock's accent is *absence* of accent — black type, white ground, one blue
 reserved for the forecast line. The current palette makes blue structural (the

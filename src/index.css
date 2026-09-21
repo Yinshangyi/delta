@@ -30,17 +30,30 @@
  * renders a positive figure.
  */
 @theme static {
-  --color-ground: #f4f6f8;
+  --color-ground: #f7f8f9;
   --color-surface: #ffffff;
-  --color-raised: #eef1f5;
-  --color-line: #dfe4ea;
+  --color-raised: #f1f3f4;
+  --color-line: #e3e6e8;
 
-  --color-ink: #0e1116;
-  --color-muted: #5b6672;
+  --color-ink: #14171a;
+  --color-muted: #656e7a;
 
-  --color-accent: #2a5bd7;
+  /*
+   * The accent is the absence of one. A near-black primary action on a white
+   * ground is what makes the composition read as considered rather than
+   * branded, and it leaves exactly one saturated colour on the screen for the
+   * chart to spend (APP-01).
+   */
+  --color-accent: #14171a;
   --color-accent-ink: #ffffff;
-  --color-accent-soft: #e8eefc;
+  --color-accent-soft: #eceef0;
+
+  /*
+   * The one blue, and it belongs to the forecast line. Structural blue — a
+   * button, a selected tab, a link — spends the same signal on something that
+   * is not a claim about the future, and then the chart has nothing left.
+   */
+  --color-forecast: #2a62e6;
 
   --color-positive: #0e7c5a;
   --color-negative: #b4413c;
@@ -48,6 +61,19 @@
 
   --font-sans: "Public Sans Variable", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /*
+   * One step above the heading scale, for the target date and nothing else.
+   * Principle 1 of design-brief.md asks the date to dominate, and it only does
+   * so at a size the rest of the scale never reaches.
+   */
+  --text-display: 4rem;
+  --text-display--line-height: 1.02;
+  --text-display--letter-spacing: -0.03em;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--line-height: 1.2;
+  --text-eyebrow--letter-spacing: 0.08em;
 }
 
 /*
@@ -67,9 +93,13 @@
   --color-ink: #e9edf2;
   --color-muted: #9aa6b2;
 
-  --color-accent: #6f9bff;
+  /* Inverted in role, not in value: the action is the lightest thing here, as
+     it is the darkest thing in light. */
+  --color-accent: #e9edf2;
   --color-accent-ink: #0e1116;
-  --color-accent-soft: #1b2740;
+  --color-accent-soft: #222a34;
+
+  --color-forecast: #6f9bff;
 
   --color-positive: #46c08d;
   --color-negative: #ef7f76;
@@ -92,8 +122,26 @@
     font-variant-numeric: normal;
   }
 
+  /* The forecast blue, because the ring has to carry against a near-black
+     primary button, where an ink ring would vanish. */
   :focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--color-forecast);
     outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /*
+   * The mock labels every figure with a small, letterspaced, muted line above
+   * it. It appears often enough to be a thing rather than a set of matching
+   * utility strings.
+   */
+  .eyebrow {
+    color: var(--color-muted);
+    font-size: var(--text-eyebrow);
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    line-height: var(--text-eyebrow--line-height);
+    text-transform: uppercase;
+    font-weight: 500;
   }
 }

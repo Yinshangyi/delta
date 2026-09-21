@@ -190,7 +190,10 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="text-ink text-sm font-semibold">{copy.chartLabel}</h2>
           {/* The month-by-month table lives on Projection, so say where. */}
-          <a href="#/projection" className="text-accent text-sm hover:underline">
+          <a
+            href="#/projection"
+            className="text-muted hover:text-ink text-sm underline underline-offset-2"
+          >
             {copy.everyMonth}
           </a>
         </div>

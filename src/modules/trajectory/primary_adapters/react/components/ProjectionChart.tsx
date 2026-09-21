@@ -94,11 +94,12 @@ export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChar
           strokeLinejoin="round"
         />
 
-        {/* Dashed: this has not happened, and says so without colour. */}
+        {/* Dashed: this has not happened, and says so without colour. The blue
+            is the second signal, never the only one. */}
         <path
           d={path(points.slice(Math.max(recorded - 1, 0)))}
           fill="none"
-          className="stroke-ink"
+          className="stroke-forecast"
           strokeWidth={2}
           strokeDasharray="5 4"
           strokeLinejoin="round"
@@ -109,7 +110,7 @@ export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChar
             cx={crossing.x}
             cy={crossing.y}
             r={4}
-            className="fill-surface stroke-ink"
+            className="fill-surface stroke-forecast"
             strokeWidth={2}
           />
         )}
