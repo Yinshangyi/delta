@@ -10,8 +10,14 @@
  * Past and future are separated here rather than in the component so the
  * distinction survives into a test: recorded months are solid, forecast months
  * are not, and the split is a property of the data.
+ *
+ * **The vertical domain always includes nought.** A savings chart drawn from
+ * its own minimum exaggerates every slope, because the first pixel of height
+ * is already tens of thousands of euros. Anchoring at nought is what makes the
+ * gradient mean what it looks like it means. A household in deficit still gets
+ * a floor below its own lowest point, so nothing is clipped.
  */
-import { Data, Result } from "effect"
+import { Data } from "effect"
 
 import * as Money from "@/shared/domain/Money"
 import * as YearMonth from "@/shared/domain/YearMonth"
@@ -77,7 +83,7 @@ export const curveOf = (
   ]
 
   const savings = points.map((point) => point.savings)
-  const all = [...savings, result.targetAmount, result.startingSavings]
+  const all = [...savings, result.targetAmount, result.startingSavings, Money.zero]
 
   return new TrajectoryCurve({
     points,
@@ -85,62 +91,5 @@ export const curveOf = (
     crossesAt: crossing(points, result.targetAmount),
     lowest: all.reduce(Money.min, all[0] ?? Money.zero),
     highest: all.reduce(Money.max, all[0] ?? Money.zero)
-  })
-}
-
-export class Plot extends Data.Class<{
-  readonly x: number
-  readonly y: number
-}> {}
-
-export interface PlotArea {
-  readonly width: number
-  readonly height: number
-}
-
-/**
- * Points into chart coordinates. Separated from the SVG so the geometry — not
- * the markup — is what a test checks.
- */
-export const plotted = (curve: TrajectoryCurve, area: PlotArea): ReadonlyArray<Plot> => {
-  const count = curve.points.length
-  const span = Money.toCents(curve.highest) - Money.toCents(curve.lowest)
-
-  return curve.points.map((point, index) => {
-    const ratio =
-      span === 0 ? 0.5 : (Money.toCents(point.savings) - Money.toCents(curve.lowest)) / span
-    return new Plot({
-      x: count <= 1 ? 0 : (index / (count - 1)) * area.width,
-      y: area.height - ratio * area.height
-    })
-  })
-}
-
-export const plotOfAmount = (
-  curve: TrajectoryCurve,
-  amount: Money.Money,
-  area: PlotArea
-): number => {
-  const span = Money.toCents(curve.highest) - Money.toCents(curve.lowest)
-  const ratio = span === 0 ? 0.5 : (Money.toCents(amount) - Money.toCents(curve.lowest)) / span
-  return area.height - ratio * area.height
-}
-
-/**
- * Ticks at a fixed count rather than a data-dependent one, so every instance
- * of the chart carries the same interval (TRJ-07) and two charts can be read
- * against each other.
- */
-export const TICK_COUNT = 5
-
-export const ticks = (curve: TrajectoryCurve): ReadonlyArray<Money.Money> => {
-  const low = Money.toCents(curve.lowest)
-  const step = (Money.toCents(curve.highest) - low) / (TICK_COUNT - 1)
-
-  return Array.from({ length: TICK_COUNT }, (_, index) =>
-    Money.fromCents(Math.round(low + step * index))
-  ).flatMap((result) => {
-    const value = Result.getOrUndefined(result)
-    return value === undefined ? [] : [value]
   })
 }

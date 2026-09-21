@@ -6,11 +6,12 @@ import { compare } from "@/modules/trajectory/core/domain/PlanVariance"
 import { project } from "@/modules/trajectory/core/domain/ProjectionEngine"
 import { averageMonthlyNet } from "@/modules/trajectory/core/domain/Shortfall"
 import {
-  curveOf,
+  type Plot,
   plotted,
   TICK_COUNT,
   ticks
-} from "@/modules/trajectory/core/domain/TrajectoryCurve"
+} from "@/modules/trajectory/core/domain/TrajectoryAxes"
+import { curveOf } from "@/modules/trajectory/core/domain/TrajectoryCurve"
 import * as CashFlow from "@/shared/domain/CashFlow"
 import * as LocalDate from "@/shared/domain/LocalDate"
 import * as Money from "@/shared/domain/Money"
@@ -99,14 +100,14 @@ describe("plotting the curve", () => {
   const area = { width: 600, height: 200 }
 
   it("spreads the months evenly across the width", () => {
-    const plots = plotted(curveOf(steady(), ym("2026-01")), area)
+    const plots: ReadonlyArray<Plot> = plotted(curveOf(steady(), ym("2026-01")), area)
     const gaps = plots.slice(1).map((plot, index) => plot.x - plots[index]!.x)
 
     expect(new Set(gaps.map((gap) => Math.round(gap)))).toHaveLength(1)
   })
 
   it("keeps every point inside the plot area", () => {
-    const plots = plotted(curveOf(steady(), ym("2026-01")), area)
+    const plots: ReadonlyArray<Plot> = plotted(curveOf(steady(), ym("2026-01")), area)
 
     // The range spans the starting balance and the goal as well as the
     // points, so the goal line and the opening figure are always on the chart.
@@ -122,12 +123,38 @@ describe("plotting the curve", () => {
       from: ym("2026-01")
     })
 
-    const plots = plotted(curveOf(flat, ym("2026-01")), area)
+    const plots: ReadonlyArray<Plot> = plotted(curveOf(flat, ym("2026-01")), area)
     expect(plots.every((plot) => Number.isFinite(plot.y))).toBe(true)
   })
 
-  it("uses the same number of ticks whatever the data, so two charts compare", () => {
-    expect(ticks(curveOf(steady(), ym("2026-01")))).toHaveLength(TICK_COUNT)
+  /**
+   * TRJ-07 asked for a fixed tick *count*. APP-05 asks for round labels, and
+   * the two cannot both hold: a round step over an arbitrary range yields four
+   * ticks or six, not always five. Round won, because €63.8k · €94.3k ·
+   * €124.8k is a correct axis nobody can read. The count stays near TICK_COUNT
+   * so the chart still looks the same from one household to the next.
+   */
+  it("keeps the tick count near TICK_COUNT so two charts still compare", () => {
+    const count = ticks(curveOf(steady(), ym("2026-01"))).length
+    expect(count).toBeGreaterThanOrEqual(TICK_COUNT - 2)
+    expect(count).toBeLessThanOrEqual(TICK_COUNT + 1)
+  })
+
+  it("spaces every tick equally", () => {
+    const values = ticks(curveOf(steady(), ym("2026-01"))).map(Money.toCents)
+    const steps = values
+      .slice(1)
+      .map((value: number, index: number) => value - Number(values[index]))
+
+    expect(new Set(steps).size).toBe(1)
+  })
+
+  it("puts the step on a multiple a person would choose", () => {
+    const values = ticks(curveOf(steady(), ym("2026-01"))).map(Money.toCents)
+    const step = Number(values[1]) - Number(values[0])
+    const magnitude = 10 ** Math.floor(Math.log10(step))
+
+    expect([1, 2, 2.5, 5]).toContain(step / magnitude)
   })
 })
 

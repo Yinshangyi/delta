@@ -2,7 +2,7 @@
 id: APP-02
 title: Sidebar identity and icons
 epic: appearance
-status: todo
+status: done
 size: S
 depends_on: [APP-01]
 spec: []
@@ -14,11 +14,11 @@ As a **household member**, I want **the sidebar to name the app and show where I
 
 ## Acceptance criteria
 
-- [ ] The wordmark is "Delta" at text weight, with "LOCAL" beside it as a quiet eyebrow
-- [ ] Each of the six sections carries an icon, drawn inline, not from an icon font
-- [ ] The current section is marked by fill and weight, and stays legible in greyscale
-- [ ] A footer block shows total capital and its composition
-- [ ] The footer figure comes from the same query as the Capital screen, never a second one
+- [x] The wordmark is "Delta" at text weight, with "LOCAL" beside it as a quiet eyebrow
+- [x] Each of the six sections carries an icon, drawn inline, not from an icon font
+- [x] The current section is marked by fill and weight, and stays legible in greyscale
+- [x] A footer block shows total capital and its composition
+- [x] The footer figure comes from the same query as the Capital screen, never a second one
 
 ## Notes
 

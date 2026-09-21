@@ -5,6 +5,7 @@ import { ScenariosContainer } from "@/modules/scenarios/primary_adapters/react/S
 import { DashboardContainer } from "@/modules/trajectory/primary_adapters/react/DashboardContainer"
 import { ProjectionContainer } from "@/modules/trajectory/primary_adapters/react/ProjectionContainer"
 import { AppShell } from "@/shell/AppShell"
+import { CapitalFooterContainer } from "@/shell/CapitalFooterContainer"
 import { useSection } from "@/shell/routing/useSection"
 import { SettingsContainer } from "@/shell/settings/SettingsContainer"
 
@@ -23,7 +24,7 @@ export function AppShellContainer() {
   const section = useSection()
 
   return (
-    <AppShell current={section}>
+    <AppShell current={section} footer={<CapitalFooterContainer />}>
       {section === "settings" ? (
         <SettingsContainer />
       ) : (

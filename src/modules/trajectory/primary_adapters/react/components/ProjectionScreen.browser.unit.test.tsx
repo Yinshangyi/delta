@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest"
 
 import { project } from "@/modules/trajectory/core/domain/ProjectionEngine"
 import { curveOf } from "@/modules/trajectory/core/domain/TrajectoryCurve"
+import { ProjectionChart } from "@/modules/trajectory/primary_adapters/react/components/ProjectionChart"
 import { ProjectionScreen } from "@/modules/trajectory/primary_adapters/react/components/ProjectionScreen"
 import { PROJECTION_COPY } from "@/modules/trajectory/primary_adapters/react/TrajectoryVocabulary"
 import * as CashFlow from "@/shared/domain/CashFlow"
@@ -55,10 +56,18 @@ describe("the projection screen", () => {
   })
 
   it("draws the chart taller here than in a dashboard panel", () => {
-    renderScreen()
+    const result = steady()
+    const curve = curveOf(result, ym("2026-03"), [])
+    const heightOf = (element: Element) => Number(element.getAttribute("viewBox")?.split(" ")[3])
 
-    const chart = screen.getByRole("img", { name: PROJECTION_COPY.chartLabel })
-    expect(chart.getAttribute("viewBox")).toBe("-8 -12 656 376")
+    const panel = render(<ProjectionChart curve={curve} label="panel" />)
+    const panelHeight = heightOf(panel.getByRole("img", { name: "panel" }))
+    panel.unmount()
+
+    renderScreen()
+    const full = screen.getByRole("img", { name: PROJECTION_COPY.chartLabel })
+
+    expect(heightOf(full)).toBeGreaterThan(panelHeight)
   })
 
   it("keeps a row for every month of the projection", () => {

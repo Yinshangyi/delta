@@ -26,6 +26,14 @@ export const messageFor = (failure: TrajectoryFailure): string =>
     MigrationError: () => "Delta could not prepare its database on this device."
   })
 
+/** APP-05: the chart names its own lines. */
+export const CHART_COPY = {
+  actual: "Actual",
+  forecast: "Forecast",
+  goal: "Goal",
+  today: "TODAY"
+} as const
+
 export const DASHBOARD_COPY = {
   title: "Dashboard",
   onTrackFor: "On track for",

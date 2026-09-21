@@ -1,4 +1,12 @@
-import { plotOfAmount, plotted, ticks } from "@/modules/trajectory/core/domain/TrajectoryCurve"
+import {
+  monthTicks,
+  plotOfAmount,
+  plotted,
+  recordedUpTo,
+  ticks
+} from "@/modules/trajectory/core/domain/TrajectoryAxes"
+import { ChartLegend } from "@/modules/trajectory/primary_adapters/react/components/ChartLegend"
+import { CHART_COPY } from "@/modules/trajectory/primary_adapters/react/TrajectoryVocabulary"
 import * as DateText from "@/shared/presentation/DateText"
 import * as MoneyText from "@/shared/presentation/MoneyText"
 
@@ -17,28 +25,31 @@ export interface ProjectionChartProps {
 }
 
 const AREAS = {
-  panel: { width: 640, height: 200 },
-  full: { width: 640, height: 340 }
+  panel: { width: 640, height: 220 },
+  full: { width: 640, height: 360 }
 } as const
 
-const PADDING = { left: 8, right: 8, top: 12, bottom: 24 }
+/** Room for the axis labels, which live outside the plot and would clip without it. */
+const PADDING = { left: 54, right: 16, top: 24, bottom: 34 }
+
+const MONTH_TICKS = 5
 
 const path = (points: ReadonlyArray<{ readonly x: number; readonly y: number }>): string =>
   points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ")
 
 /**
- * One line, a goal line, and a mark where they meet (TRJ-07).
+ * One line, a goal line, a mark where they meet, and the scale to read any of
+ * it against (TRJ-07, APP-05).
  *
  * Drawn from `TrajectoryCurve`'s geometry rather than by a charting library,
- * because every criterion on this ticket is about restraint — straight
- * segments, no area fill, faint gridlines, a fixed tick interval — and each
- * one would be an argument with a library's defaults. The geometry is tested
- * as pure functions; this file only turns numbers into markup.
+ * because every criterion here is about restraint — straight segments, no area
+ * fill, faint gridlines, a fixed tick interval — and each one would be an
+ * argument with a library's defaults. The geometry is tested as pure
+ * functions; this file only turns numbers into markup.
  *
  * **Greyscale-legible**: the forecast is dashed and the goal line is dotted,
  * so the three lines stay apart with no colour at all (design-brief.md
- * principle 5). The recorded segment is solid because it is the one that
- * actually happened.
+ * principle 5). Blue is a second signal on the forecast, never the only one.
  *
  * **No area fill**: a filled region under a forecast reads as a quantity that
  * has been accumulated. None of it has.
@@ -46,15 +57,18 @@ const path = (points: ReadonlyArray<{ readonly x: number; readonly y: number }>)
 export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChartProps) {
   const area = AREAS[size]
   const points = plotted(curve, area)
-  const recorded = curve.points.filter((point) => point.recorded).length
+  const boundary = recordedUpTo(curve)
+  const solidUpTo = boundary === undefined ? 1 : boundary + 1
   const goalY = plotOfAmount(curve, curve.target, area)
-  const crossing =
-    curve.crossesAt === undefined
-      ? undefined
-      : points[curve.points.findIndex((point) => point.month === curve.crossesAt)]
+  const crossesAt = curve.crossesAt
+  const crossingIndex = curve.points.findIndex((point) => point.month === crossesAt)
+  const crossing = crossesAt === undefined ? undefined : points[crossingIndex]
+  const todayX = boundary === undefined ? undefined : points[boundary]?.x
 
   return (
-    <figure className="flex flex-col gap-2">
+    <figure className="flex flex-col gap-3">
+      <ChartLegend target={curve.target} />
+
       <svg
         viewBox={`${-PADDING.left} ${-PADDING.top} ${area.width + PADDING.left + PADDING.right} ${
           area.height + PADDING.top + PADDING.bottom
@@ -63,17 +77,58 @@ export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChar
         aria-label={label}
         className="w-full"
       >
-        {ticks(curve).map((tick) => (
-          <line
-            key={String(tick)}
-            x1={0}
-            x2={area.width}
-            y1={plotOfAmount(curve, tick, area)}
-            y2={plotOfAmount(curve, tick, area)}
-            className="stroke-line"
-            strokeWidth={1}
-          />
+        {ticks(curve).map((tick) => {
+          const y = plotOfAmount(curve, tick, area)
+          return (
+            <g key={String(tick)}>
+              <line x1={0} x2={area.width} y1={y} y2={y} className="stroke-line" strokeWidth={1} />
+              <text
+                x={-10}
+                y={y}
+                textAnchor="end"
+                dominantBaseline="middle"
+                className="fill-muted text-[11px]"
+              >
+                {MoneyText.compact(tick)}
+              </text>
+            </g>
+          )
+        })}
+
+        {/*
+            The outermost labels anchor inward rather than centring: a label
+            centred on the last point hangs half its width past the plot and
+            clips against the edge of the figure.
+        */}
+        {monthTicks(curve, MONTH_TICKS).map((tick) => (
+          <text
+            key={String(tick.month)}
+            x={points[tick.index]?.x ?? 0}
+            y={area.height + 20}
+            textAnchor={
+              tick.index === 0 ? "start" : tick.index === curve.points.length - 1 ? "end" : "middle"
+            }
+            className="fill-muted text-[11px]"
+          >
+            {DateText.shortMonth(tick.month)}
+          </text>
         ))}
+
+        {todayX === undefined ? null : (
+          <g>
+            <line
+              x1={todayX}
+              x2={todayX}
+              y1={-6}
+              y2={area.height}
+              className="stroke-muted"
+              strokeWidth={1}
+            />
+            <text x={todayX + 4} y={-12} className="fill-muted text-[10px] tracking-[0.08em]">
+              {CHART_COPY.today}
+            </text>
+          </g>
+        )}
 
         <line
           x1={0}
@@ -87,17 +142,16 @@ export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChar
 
         {/* Solid: this is what happened. */}
         <path
-          d={path(points.slice(0, Math.max(recorded, 1)))}
+          d={path(points.slice(0, Math.max(solidUpTo, 1)))}
           fill="none"
           className="stroke-ink"
           strokeWidth={2}
           strokeLinejoin="round"
         />
 
-        {/* Dashed: this has not happened, and says so without colour. The blue
-            is the second signal, never the only one. */}
+        {/* Dashed: this has not happened, and says so without colour. */}
         <path
-          d={path(points.slice(Math.max(recorded - 1, 0)))}
+          d={path(points.slice(Math.max(solidUpTo - 1, 0)))}
           fill="none"
           className="stroke-forecast"
           strokeWidth={2}
@@ -105,28 +159,35 @@ export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChar
           strokeLinejoin="round"
         />
 
-        {crossing === undefined ? null : (
-          <circle
-            cx={crossing.x}
-            cy={crossing.y}
-            r={4}
-            className="fill-surface stroke-forecast"
-            strokeWidth={2}
-          />
+        {crossing === undefined || crossesAt === undefined ? null : (
+          <g>
+            <line
+              x1={crossing.x}
+              x2={crossing.x}
+              y1={crossing.y}
+              y2={area.height}
+              className="stroke-forecast"
+              strokeWidth={1}
+              strokeDasharray="2 3"
+            />
+            <circle
+              cx={crossing.x}
+              cy={crossing.y}
+              r={4}
+              className="fill-surface stroke-forecast"
+              strokeWidth={2}
+            />
+            <text
+              x={crossing.x}
+              y={crossing.y - 12}
+              textAnchor="end"
+              className="fill-forecast text-[11px] font-medium"
+            >
+              {DateText.month(crossesAt)}
+            </text>
+          </g>
         )}
       </svg>
-
-      <figcaption className="text-muted flex items-center justify-between text-xs">
-        <span>{curve.points[0] === undefined ? "" : DateText.month(curve.points[0].month)}</span>
-        <span>
-          {curve.crossesAt === undefined
-            ? `goal ${MoneyText.money(curve.target)}`
-            : `${MoneyText.money(curve.target)} in ${DateText.month(curve.crossesAt)}`}
-        </span>
-        <span>
-          {curve.points.at(-1) === undefined ? "" : DateText.month(curve.points.at(-1)!.month)}
-        </span>
-      </figcaption>
     </figure>
   )
 }

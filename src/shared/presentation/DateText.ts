@@ -50,3 +50,16 @@ export const day = (value: LocalDate.LocalDate): string =>
  */
 export const monthIso = (value: string): string =>
   Result.match(YearMonth.parse(value), { onFailure: () => value, onSuccess: month })
+
+const shortMonthFormat = new Intl.DateTimeFormat(LOCALE, {
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC"
+})
+
+/**
+ * An axis label: "Sep 2026". The long form collides with its neighbours at
+ * every width the chart is drawn at.
+ */
+export const shortMonth = (value: YearMonth.YearMonth): string =>
+  shortMonthFormat.format(utc(YearMonth.year(value), YearMonth.month(value), 1))
