@@ -15,7 +15,6 @@ import { curveOf } from "@/modules/trajectory/core/domain/TrajectoryCurve"
 import { commitmentsAhead } from "@/modules/trajectory/primary_adapters/react/CommitmentsAhead"
 import { CommitmentsAheadPanel } from "@/modules/trajectory/primary_adapters/react/components/CommitmentsAheadPanel"
 import { ProjectionChart } from "@/modules/trajectory/primary_adapters/react/components/ProjectionChart"
-import { ProjectionTable } from "@/modules/trajectory/primary_adapters/react/components/ProjectionTable"
 import { TargetDatePanel } from "@/modules/trajectory/primary_adapters/react/components/TargetDatePanel"
 import { TrajectoryPanel } from "@/modules/trajectory/primary_adapters/react/components/TrajectoryPanel"
 import { UpdateBalancesForm } from "@/modules/trajectory/primary_adapters/react/components/UpdateBalancesForm"
@@ -188,7 +187,13 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }
       />
 
       <section className="border-line bg-surface flex flex-col gap-3 rounded-lg border p-5">
-        <h2 className="text-ink text-sm font-semibold">{copy.chartLabel}</h2>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="text-ink text-sm font-semibold">{copy.chartLabel}</h2>
+          {/* The month-by-month table lives on Projection, so say where. */}
+          <a href="#/projection" className="text-accent text-sm hover:underline">
+            {copy.everyMonth}
+          </a>
+        </div>
         <ProjectionChart
           curve={curveOf(projection.result, thisMonth(), recorded)}
           label={copy.chartLabel}
@@ -200,8 +205,6 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }
         <VariancePanel variance={variance} />
         <CommitmentsAheadPanel commitments={ahead} />
       </div>
-
-      <ProjectionTable months={projection.result.months} today={thisMonth()} goalMonth={reached} />
 
       {updating ? (
         <UpdateBalancesForm

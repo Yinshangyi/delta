@@ -80,5 +80,21 @@ export const DASHBOARD_COPY = {
     emptyNote: "Nothing with a finish line of its own."
   },
   updateBalances: "Update balances",
+  everyMonth: "See every month",
   chartLabel: "Savings against the goal, month by month"
+} as const
+
+/**
+ * The Projection screen is the dashboard's chart at full size with the
+ * month-by-month table under it (design-brief.md, "Projection chart"). It
+ * carries no primary action of its own — principle 4 puts the one action on
+ * the dashboard, and this screen is for reading.
+ */
+export const PROJECTION_COPY = {
+  title: "Projection",
+  subtitle: "Every month between here and the goal",
+  chartLabel: DASHBOARD_COPY.chartLabel,
+  tableTitle: "Month by month",
+  noGoal: DASHBOARD_COPY.unreachable.noGoal,
+  noGoalNote: DASHBOARD_COPY.unreachable.noGoalNote
 } as const

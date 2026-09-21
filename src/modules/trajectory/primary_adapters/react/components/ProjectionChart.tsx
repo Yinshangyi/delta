@@ -7,9 +7,20 @@ import type { TrajectoryCurve } from "@/modules/trajectory/core/domain/Trajector
 export interface ProjectionChartProps {
   readonly curve: TrajectoryCurve
   readonly label: string
+  /**
+   * The dashboard shows this chart as one panel among several, the Projection
+   * screen shows the same chart as the whole point of the page. Only the
+   * aspect changes — a taller box at the same width, so the slope of the
+   * forecast reads rather than flattening into the horizontal.
+   */
+  readonly size?: "panel" | "full"
 }
 
-const AREA = { width: 640, height: 200 }
+const AREAS = {
+  panel: { width: 640, height: 200 },
+  full: { width: 640, height: 340 }
+} as const
+
 const PADDING = { left: 8, right: 8, top: 12, bottom: 24 }
 
 const path = (points: ReadonlyArray<{ readonly x: number; readonly y: number }>): string =>
@@ -32,10 +43,11 @@ const path = (points: ReadonlyArray<{ readonly x: number; readonly y: number }>)
  * **No area fill**: a filled region under a forecast reads as a quantity that
  * has been accumulated. None of it has.
  */
-export function ProjectionChart({ curve, label }: ProjectionChartProps) {
-  const points = plotted(curve, AREA)
+export function ProjectionChart({ curve, label, size = "panel" }: ProjectionChartProps) {
+  const area = AREAS[size]
+  const points = plotted(curve, area)
   const recorded = curve.points.filter((point) => point.recorded).length
-  const goalY = plotOfAmount(curve, curve.target, AREA)
+  const goalY = plotOfAmount(curve, curve.target, area)
   const crossing =
     curve.crossesAt === undefined
       ? undefined
@@ -44,8 +56,8 @@ export function ProjectionChart({ curve, label }: ProjectionChartProps) {
   return (
     <figure className="flex flex-col gap-2">
       <svg
-        viewBox={`${-PADDING.left} ${-PADDING.top} ${AREA.width + PADDING.left + PADDING.right} ${
-          AREA.height + PADDING.top + PADDING.bottom
+        viewBox={`${-PADDING.left} ${-PADDING.top} ${area.width + PADDING.left + PADDING.right} ${
+          area.height + PADDING.top + PADDING.bottom
         }`}
         role="img"
         aria-label={label}
@@ -55,9 +67,9 @@ export function ProjectionChart({ curve, label }: ProjectionChartProps) {
           <line
             key={String(tick)}
             x1={0}
-            x2={AREA.width}
-            y1={plotOfAmount(curve, tick, AREA)}
-            y2={plotOfAmount(curve, tick, AREA)}
+            x2={area.width}
+            y1={plotOfAmount(curve, tick, area)}
+            y2={plotOfAmount(curve, tick, area)}
             className="stroke-line"
             strokeWidth={1}
           />
@@ -65,7 +77,7 @@ export function ProjectionChart({ curve, label }: ProjectionChartProps) {
 
         <line
           x1={0}
-          x2={AREA.width}
+          x2={area.width}
           y1={goalY}
           y2={goalY}
           className="stroke-muted"
