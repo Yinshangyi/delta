@@ -81,6 +81,39 @@ export const DASHBOARD_COPY = {
   },
   updateBalances: "Update balances",
   everyMonth: "See every month",
+  /** APP-03: the mock's header line, and the one place the premise is stated unprompted. */
+  header: {
+    updated: "Updated",
+    neverUpdated: "No balances recorded yet",
+    privacy: "nothing leaves this machine"
+  },
+  target: {
+    eyebrow: "Estimated target",
+    remaining: "months remaining",
+    thisMonth: "reached this month",
+    basis: "Estimate · based on your current trajectory",
+    onPlan: "on plan",
+    ahead: "ahead",
+    behind: "behind"
+  },
+  capitalCard: {
+    eyebrow: "Total capital",
+    of: "of",
+    accounts: "accounts",
+    account: "account",
+    assets: "assets",
+    asset: "asset",
+    reached: "reached",
+    capitalScreen: "Capital"
+  },
+  band: {
+    income: "Household income",
+    commitments: "Commitments",
+    savings: "Expected monthly savings",
+    perMonth: "/ month",
+    active: "active · tax scheduled separately",
+    lessCommitments: "Income less commitments"
+  },
   chartLabel: "Savings against the goal, month by month"
 } as const
 

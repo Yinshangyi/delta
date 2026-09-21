@@ -2,7 +2,6 @@ import { useAtomRefresh, useAtomSet, useAtomValue } from "@effect/atom-react"
 import { Exit, Match, Option } from "effect"
 import { useState } from "react"
 
-import { Button } from "@/dsl/Button"
 import { FailureState } from "@/dsl/FailureState"
 import {
   capitalOverviewAtom,
@@ -14,11 +13,17 @@ import { averageMonthlyNet } from "@/modules/trajectory/core/domain/Shortfall"
 import { curveOf } from "@/modules/trajectory/core/domain/TrajectoryCurve"
 import { commitmentsAhead } from "@/modules/trajectory/primary_adapters/react/CommitmentsAhead"
 import { CommitmentsAheadPanel } from "@/modules/trajectory/primary_adapters/react/components/CommitmentsAheadPanel"
+import { DashboardHeader } from "@/modules/trajectory/primary_adapters/react/components/DashboardHeader"
 import { ProjectionChart } from "@/modules/trajectory/primary_adapters/react/components/ProjectionChart"
-import { TargetDatePanel } from "@/modules/trajectory/primary_adapters/react/components/TargetDatePanel"
-import { TrajectoryPanel } from "@/modules/trajectory/primary_adapters/react/components/TrajectoryPanel"
+import { TrajectoryBand } from "@/modules/trajectory/primary_adapters/react/components/TrajectoryBand"
+import { UnreachableNotice } from "@/modules/trajectory/primary_adapters/react/components/UnreachableNotice"
 import { UpdateBalancesForm } from "@/modules/trajectory/primary_adapters/react/components/UpdateBalancesForm"
 import { VariancePanel } from "@/modules/trajectory/primary_adapters/react/components/VariancePanel"
+import {
+  compositionOf,
+  lastUpdated,
+  monthsRemaining
+} from "@/modules/trajectory/primary_adapters/react/DashboardSummary"
 import {
   DASHBOARD_COPY,
   DEFECT_MESSAGE,
@@ -86,6 +91,7 @@ export function DashboardContainer() {
             ? []
             : commitmentsAhead(commitments.commitments, commitments.positions)
         }
+        commitmentCount={commitments === undefined ? 0 : commitments.commitments.length}
         recorded={recorded ?? []}
       />
     )
@@ -98,10 +104,19 @@ interface DashboardProps {
   readonly variance: PlanVariance | undefined
   readonly holdings: ReadonlyArray<ValuedHolding>
   readonly ahead: ReadonlyArray<CommitmentAhead>
+  readonly commitmentCount: number
   readonly recorded: ReadonlyArray<RecordedPoint>
 }
 
-function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }: DashboardProps) {
+function Dashboard({
+  projection,
+  netWorth,
+  variance,
+  holdings,
+  ahead,
+  commitmentCount,
+  recorded
+}: DashboardProps) {
   const copy = DASHBOARD_COPY
   const [updating, setUpdating] = useState(false)
 
@@ -166,25 +181,25 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight">{copy.title}</h1>
-        {/* Exactly one primary action on this screen (TRJ-06). */}
-        <Button tone="primary" disabled={holdings.length === 0} onClick={() => setUpdating(true)}>
-          {copy.updateBalances}
-        </Button>
-      </div>
-
-      <TargetDatePanel
+      <DashboardHeader
         targetDate={reached}
+        monthsRemaining={monthsRemaining(reached, thisMonth())}
+        standing={variance?.standing}
         capital={projection.startingCapital}
         goal={projection.goal.targetAmount}
+        composition={compositionOf(holdings)}
         netWorth={
           netWorth === undefined || Money.isZero(netWorth.outstandingDebt)
             ? undefined
             : netWorth.netWorth
         }
-        shortfall={shortfall}
+        updated={lastUpdated(holdings)}
+        canUpdateBalances={holdings.length > 0}
+        onUpdateBalances={() => setUpdating(true)}
+        instead={shortfall === undefined ? undefined : <UnreachableNotice shortfall={shortfall} />}
       />
+
+      <TrajectoryBand outlook={outlookOver(projection.result)} commitmentCount={commitmentCount} />
 
       <section className="border-line bg-surface flex flex-col gap-3 rounded-lg border p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
@@ -204,7 +219,6 @@ function Dashboard({ projection, netWorth, variance, holdings, ahead, recorded }
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <TrajectoryPanel outlook={outlookOver(projection.result)} />
         <VariancePanel variance={variance} />
         <CommitmentsAheadPanel commitments={ahead} />
       </div>
