@@ -26,6 +26,33 @@ export const messageFor = (failure: TrajectoryFailure): string =>
     MigrationError: () => "Delta could not prepare its database on this device."
   })
 
+/** APP-06: the commitments that end, as cards. */
+export const AHEAD_COPY = {
+  title: "Debts and scheduled payments",
+  note: "Commitments that end, rather than repeat forever",
+  empty: "No debts or scheduled tax.",
+  emptyNote: "Nothing with a finish line of its own.",
+  debt: {
+    remainingOf: "remaining of",
+    repaid: "repaid",
+    perMonth: "/ month",
+    month: "month",
+    months: "months",
+    left: "left",
+    record: "Record actual balance"
+  },
+  tax: {
+    title: "Next tax payment",
+    /* Used as the detail line now the heading is the liability's own name. */
+    due: "due",
+    payment: "payment",
+    of: "of",
+    stillScheduled: "still scheduled.",
+    nothingDue: "Nothing due",
+    schedule: "See schedule"
+  }
+} as const
+
 /** APP-05: the chart names its own lines. */
 export const CHART_COPY = {
   actual: "Actual",

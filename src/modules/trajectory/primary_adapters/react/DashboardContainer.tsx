@@ -51,7 +51,7 @@ import type { PlanVariance } from "@/modules/trajectory/core/domain/PlanVariance
 import type { RecordedPoint } from "@/modules/trajectory/core/domain/TrajectoryCurve"
 import type { NetWorth } from "@/modules/trajectory/core/use_cases/NetWorthQuery"
 import type { Projection } from "@/modules/trajectory/core/use_cases/ProjectionQuery"
-import type { CommitmentAhead } from "@/modules/trajectory/primary_adapters/react/components/CommitmentsAheadPanel"
+import type { CommitmentAhead } from "@/modules/trajectory/primary_adapters/react/CommitmentsAhead"
 import type { TrajectoryFailure } from "@/modules/trajectory/primary_adapters/react/TrajectoryVocabulary"
 
 const errorOf = (state: AsyncState<unknown, TrajectoryFailure>): string | undefined =>
@@ -89,7 +89,7 @@ export function DashboardContainer() {
         ahead={
           commitments === undefined
             ? []
-            : commitmentsAhead(commitments.commitments, commitments.positions)
+            : commitmentsAhead(commitments.commitments, commitments.positions, today())
         }
         commitmentCount={commitments === undefined ? 0 : commitments.commitments.length}
         recorded={recorded ?? []}
@@ -218,10 +218,9 @@ function Dashboard({
         />
       </section>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <VariancePanel variance={variance} />
-        <CommitmentsAheadPanel commitments={ahead} />
-      </div>
+      <VariancePanel variance={variance} />
+
+      <CommitmentsAheadPanel commitments={ahead} />
 
       {updating ? (
         <UpdateBalancesForm
