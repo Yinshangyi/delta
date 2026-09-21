@@ -24,6 +24,7 @@ const summary = (overrides: Partial<HoldingSummary> = {}): HoldingSummary => ({
   asOf: "as of 30 Sep 2026",
   estimated: false,
   stale: false,
+  ageInMonths: 0,
   included: true,
   counted: true,
   ...overrides
@@ -32,6 +33,7 @@ const summary = (overrides: Partial<HoldingSummary> = {}): HoldingSummary => ({
 const group = (props: Partial<Parameters<typeof HoldingGroup>[0]> = {}) => (
   <HoldingGroup
     title="Accounts"
+    caption="Balances you can verify"
     summaries={[summary()]}
     selected={undefined}
     onSelect={() => {}}
@@ -43,68 +45,50 @@ const group = (props: Partial<Parameters<typeof HoldingGroup>[0]> = {}) => (
   />
 )
 
+const headline = (over: Partial<Parameters<typeof CapitalHeadline>[0]> = {}) => ({
+  total: euros(35_000),
+  goal: euros(150_000),
+  netWorth: undefined,
+  targetDate: ym("2027-08"),
+  hasGoal: true,
+  accounts: 2,
+  assets: 1,
+  excluded: 0,
+  ...over
+})
+
 describe("the capital headline", () => {
   it("leads with capital, because capital drives the target date (spec §77)", () => {
-    render(
-      <CapitalHeadline
-        total={euros(35_000)}
-        netWorth={undefined}
-        targetDate={ym("2027-08")}
-        hasGoal
-      />
-    )
+    render(<CapitalHeadline {...headline()} />)
 
     expect(screen.getByText("€35,000")).toBeInTheDocument()
-    expect(screen.getByText(/the projection's starting balance/i)).toBeInTheDocument()
+    expect(screen.getByText(/2 accounts · 1 asset/i)).toBeInTheDocument()
   })
 
   it("shows the target date on this screen, where the question is being asked", () => {
-    render(
-      <CapitalHeadline
-        total={euros(35_000)}
-        netWorth={undefined}
-        targetDate={ym("2027-08")}
-        hasGoal
-      />
-    )
+    render(<CapitalHeadline {...headline()} />)
 
     expect(screen.getByText("August 2027")).toBeInTheDocument()
   })
 
   it("says plainly when the goal is not reachable rather than showing nothing", () => {
-    render(
-      <CapitalHeadline total={Money.zero} netWorth={undefined} targetDate={undefined} hasGoal />
-    )
+    render(<CapitalHeadline {...headline({ total: Money.zero, targetDate: undefined })} />)
 
     expect(screen.getByText(/not reachable on this trajectory/i)).toBeInTheDocument()
   })
 
   it("hides net worth entirely where nothing is owed (CAP-11)", () => {
-    render(
-      <CapitalHeadline
-        total={euros(35_000)}
-        netWorth={undefined}
-        targetDate={ym("2027-08")}
-        hasGoal
-      />
-    )
+    render(<CapitalHeadline {...headline()} />)
 
     expect(screen.queryByText(/net worth/i)).not.toBeInTheDocument()
   })
 
   it("shows net worth beneath the headline where debts exist", () => {
-    render(
-      <CapitalHeadline
-        total={euros(15_000)}
-        netWorth={euros(5_500)}
-        targetDate={ym("2027-08")}
-        hasGoal
-      />
-    )
+    render(<CapitalHeadline {...headline({ total: euros(15_000), netWorth: euros(5_500) })} />)
 
     expect(screen.getByText("€15,000")).toBeInTheDocument()
     expect(screen.getByText("€5,500")).toBeInTheDocument()
-    expect(screen.getByText(/less what is still owed/i)).toBeInTheDocument()
+    expect(screen.getByText(/net worth/i)).toBeInTheDocument()
   })
 })
 
@@ -123,10 +107,17 @@ describe("a holding row", () => {
     expect(screen.getByText(/still here, and still worth what it is worth/i)).toBeInTheDocument()
   })
 
-  it("marks a valuation older than a year as stale (CAP-06)", () => {
-    render(group({ summaries: [summary({ stale: true })] }))
+  it("marks a valuation older than a year as stale, and says how old (CAP-06)", () => {
+    render(group({ summaries: [summary({ stale: true, ageInMonths: 14 })] }))
 
-    expect(screen.getByText(/valued over a year ago/i)).toBeInTheDocument()
+    expect(screen.getByText(/stale · 14 mo/i)).toBeInTheDocument()
+  })
+
+  it("names the kind of fact the group holds (spec §70)", () => {
+    render(group())
+
+    expect(screen.getByText(/balances you can verify/i)).toBeInTheDocument()
+    expect(screen.getByText(/^included$/i)).toBeInTheDocument()
   })
 
   it("says when nothing has been recorded rather than showing zero", () => {

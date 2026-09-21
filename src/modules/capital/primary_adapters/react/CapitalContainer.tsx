@@ -4,6 +4,7 @@ import { useState } from "react"
 
 import { EmptyState } from "@/dsl/EmptyState"
 import { FailureState } from "@/dsl/FailureState"
+import { countsTowardCapital } from "@/modules/capital/core/domain/Holding"
 import { CapitalScreen } from "@/modules/capital/primary_adapters/react/CapitalScreen"
 import {
   CAPITAL_COPY,
@@ -11,6 +12,7 @@ import {
   messageFor
 } from "@/modules/capital/primary_adapters/react/CapitalVocabulary"
 import { CapitalHeadline } from "@/modules/capital/primary_adapters/react/components/CapitalHeadline"
+import { CapitalTotalRow } from "@/modules/capital/primary_adapters/react/components/CapitalTotalRow"
 import { DeleteHoldingDialog } from "@/modules/capital/primary_adapters/react/components/DeleteHoldingDialog"
 import { HoldingDetailPanel } from "@/modules/capital/primary_adapters/react/components/HoldingDetailPanel"
 import {
@@ -189,6 +191,10 @@ function Capital({ household, overview, netWorth, projection, hasGoal }: Capital
             }
             targetDate={targetDateOf(projection)}
             hasGoal={hasGoal}
+            goal={projection?.goal.targetAmount}
+            accounts={overview.accounts.length}
+            assets={overview.assets.length}
+            excluded={all.filter((valued) => !countsTowardCapital(valued.holding)).length}
           />
         }
         groups={
@@ -197,6 +203,7 @@ function Capital({ household, overview, netWorth, projection, hasGoal }: Capital
               <EmptyState title={CAPITAL_COPY.empty} description={CAPITAL_COPY.emptyDescription} />
               <HoldingGroup
                 title={CAPITAL_COPY.accounts}
+                caption={CAPITAL_COPY.accountsNote}
                 summaries={[]}
                 selected={undefined}
                 onSelect={() => {}}
@@ -207,6 +214,7 @@ function Capital({ household, overview, netWorth, projection, hasGoal }: Capital
               />
               <HoldingGroup
                 title={CAPITAL_COPY.assets}
+                caption={CAPITAL_COPY.assetsNote}
                 summaries={[]}
                 selected={undefined}
                 onSelect={() => {}}
@@ -220,6 +228,7 @@ function Capital({ household, overview, netWorth, projection, hasGoal }: Capital
             <>
               <HoldingGroup
                 title={CAPITAL_COPY.accounts}
+                caption={CAPITAL_COPY.accountsNote}
                 summaries={summaries(overview.accounts)}
                 selected={selected}
                 onSelect={(id) => setSelected(id === selected ? undefined : id)}
@@ -230,6 +239,7 @@ function Capital({ household, overview, netWorth, projection, hasGoal }: Capital
               />
               <HoldingGroup
                 title={CAPITAL_COPY.assets}
+                caption={CAPITAL_COPY.assetsNote}
                 summaries={summaries(overview.assets)}
                 selected={selected}
                 onSelect={(id) => setSelected(id === selected ? undefined : id)}
@@ -238,6 +248,14 @@ function Capital({ household, overview, netWorth, projection, hasGoal }: Capital
                 onAdd={() => setAdding("PhysicalAsset")}
                 busy={busy}
               />
+
+              <CapitalTotalRow
+                total={overview.total}
+                goal={projection?.goal.targetAmount}
+                excluded={all.filter((valued) => !countsTowardCapital(valued.holding)).length}
+              />
+
+              <p className="text-muted max-w-3xl text-xs">{CAPITAL_COPY.conventions}</p>
             </>
           )
         }

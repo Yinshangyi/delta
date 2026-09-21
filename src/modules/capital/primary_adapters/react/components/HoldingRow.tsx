@@ -44,8 +44,13 @@ export function HoldingRow({
             )}
             {summary.estimated ? <Badge kind="estimated" /> : null}
             {summary.stale ? (
-              <span className="border-line text-muted rounded border border-dashed px-1.5 py-0.5 text-xs font-medium">
-                {copy.stale}
+              /* The age, not only the fact: "stale" says to look again,
+                 "stale · 14 mo" says how badly (APP-07). */
+              <span className="border-line text-muted rounded border border-dashed px-1.5 py-0.5 text-xs font-medium uppercase">
+                {copy.staleFor}
+                {summary.ageInMonths === undefined
+                  ? ""
+                  : ` · ${summary.ageInMonths} ${copy.monthsShort}`}
               </span>
             ) : null}
           </span>
