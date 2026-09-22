@@ -66,8 +66,14 @@
    * One step above the heading scale, for the target date and nothing else.
    * Principle 1 of design-brief.md asks the date to dominate, and it only does
    * so at a size the rest of the scale never reaches.
+   *
+   * Fluid, because "August 2028" is fourteen characters and the card holding
+   * it is a fraction of the window: a size that sits well at 1440 crowds its
+   * own panel at 1024, which the brief requires to hold up. The ceiling is
+   * roughly 1.6x the capital figure beside it — enough to dominate, which is
+   * what the principle asks for, rather than as large as the scale allows.
    */
-  --text-display: 4rem;
+  --text-display: clamp(2.25rem, 3.4vw, 3rem);
   --text-display--line-height: 1.02;
   --text-display--letter-spacing: -0.03em;
 

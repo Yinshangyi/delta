@@ -24,6 +24,13 @@ As a **household member**, I want **the app to carry the mock's visual identity*
 
 ## Notes
 
+**The display step is fluid, and lower than the mock's.** It was a flat 4rem,
+taken from the mock at 1440, which overpowered the card holding it: "August
+2028" is fourteen characters in a panel that is a fraction of the window. It is
+now `clamp(2.25rem, 3.4vw, 3rem)` — 48px at 1440, 36px at 1024 — which keeps
+the date roughly 1.6x the capital figure beside it. Principle 1 asks the date
+to dominate, not to be as large as the scale allows.
+
 **Dark is unticked.** The accent and forecast roles were re-pointed so dark
 keeps the same meanings — the action is the lightest thing there, as it is the
 darkest thing in light — but the ground, surface and ink are untouched and I did
