@@ -24,6 +24,23 @@ As a **household member**, I want **the target date and total capital side by si
 
 ## Notes
 
+**The goal moved onto the progress bar.** It sat after an "of" at `text-sm`
+muted, which is smaller than the composition line beneath it and easy to miss —
+the figure the whole screen is aimed at, rendered as an annotation. It is now
+the bar's right-hand label at `text-base` in ink, with `€0` at the left.
+
+That is where it belongs structurally: the bar's fill is a proportion *of the
+goal*, so the goal is the right edge rather than a footnote. An unlabelled bar
+states a ratio while hiding both its terms. Naming the ends also gives the bar
+the scale it never had, which is the same job the chart's goal line does.
+
+It appears once, not twice — printing €150,000 above the bar and again on it
+would put the same figure within a few pixels of itself. There is a test for
+that, because the obvious way to make something more visible is to repeat it.
+
+The bar came out as `dsl/ScaleBar`, so the Capital screen's identical bar can
+adopt it rather than the two drifting apart.
+
 The mock renders the date as "3 Nov 2026" and Delta renders "03 Nov 2026".
 `DateText.day` is `day: "2-digit"` app-wide and dates sit in columns that have
 to line up, so the app's format wins over the mock's on this one detail.

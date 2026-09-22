@@ -1,4 +1,5 @@
 import { Button } from "@/dsl/Button"
+import { ScaleBar } from "@/dsl/ScaleBar"
 import { DASHBOARD_COPY } from "@/modules/trajectory/primary_adapters/react/TrajectoryVocabulary"
 import * as Money from "@/shared/domain/Money"
 import * as DateText from "@/shared/presentation/DateText"
@@ -124,30 +125,27 @@ function CapitalHalf({
     <div className="bg-surface border-line flex flex-col gap-3 p-6 lg:border-l">
       <p className="eyebrow">{copy.eyebrow}</p>
 
-      <div className="flex flex-wrap items-baseline gap-2">
-        <p className="text-ink text-3xl font-semibold tracking-tight tabular-nums">
-          {MoneyText.money(capital)}
-        </p>
-        <p className="text-muted text-sm tabular-nums">
-          {copy.of} {MoneyText.money(goal)}
-        </p>
-      </div>
+      <p className="text-ink text-3xl font-semibold tracking-tight tabular-nums">
+        {MoneyText.money(capital)}
+      </p>
 
       <p className="text-muted text-sm">
         {composition.accounts} {accounts} · {composition.assets} {assets} · {percent}%{" "}
         {copy.reached}
       </p>
 
-      <div
-        className="bg-raised h-1.5 w-full overflow-hidden rounded-full"
-        role="progressbar"
-        aria-valuenow={percent}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-label={DASHBOARD_COPY.reached}
-      >
-        <div className="bg-accent h-full" style={{ width: `${percent}%` }} />
-      </div>
+      {/*
+          The goal lives on the bar rather than after an "of" above it. It is
+          the bar's right edge — the thing the fill is a proportion of — and
+          stating it here names it once, at a size worth reading, instead of
+          twice within a few pixels.
+      */}
+      <ScaleBar
+        percent={percent}
+        label={DASHBOARD_COPY.reached}
+        start={MoneyText.money(Money.zero)}
+        end={MoneyText.money(goal)}
+      />
 
       {netWorth === undefined ? null : (
         <div className="border-line flex items-baseline justify-between gap-3 border-t pt-3">

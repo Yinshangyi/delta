@@ -87,6 +87,19 @@ describe("the dashboard header", () => {
     expect(screen.getByText(/2 accounts · 1 asset · 20% reached/i)).toBeInTheDocument()
   })
 
+  it("names both ends of the bar, so the fill is a proportion of something", () => {
+    render(<DashboardHeader {...header({ capital: euros(30_000) })} />)
+
+    expect(screen.getByText("€0")).toBeInTheDocument()
+    expect(screen.getByText("€150,000")).toBeInTheDocument()
+  })
+
+  it("states the goal once, not twice over", () => {
+    render(<DashboardHeader {...header({ capital: euros(30_000) })} />)
+
+    expect(screen.getAllByText("€150,000")).toHaveLength(1)
+  })
+
   it("counts one account and one asset in the singular", () => {
     render(<DashboardHeader {...header({ composition: { accounts: 1, assets: 1 } })} />)
 
